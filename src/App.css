@@ -6,11 +6,12 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  cursor: url("Black Pixel--cursor--SweezyCursors.png"), auto;
 }
 
 /* Container */
@@ -124,7 +125,7 @@ button[type="submit"]:active {
 }
 
 /* Toggle Section */
-.card > p {
+.card>p {
   text-align: center;
   font-size: 0.875rem;
   color: #718096;
@@ -133,7 +134,7 @@ button[type="submit"]:active {
   border-top: 1px solid #e2e8f0;
 }
 
-.card > p button {
+.card>p button {
   background: none;
   border: none;
   color: #667eea;
@@ -146,7 +147,7 @@ button[type="submit"]:active {
   transition: all 0.2s ease;
 }
 
-.card > p button:hover {
+.card>p button:hover {
   color: #764ba2;
   text-decoration: underline;
 }
@@ -157,6 +158,7 @@ button[type="submit"]:active {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
