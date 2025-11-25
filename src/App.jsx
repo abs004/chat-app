@@ -19,7 +19,7 @@ function App() {
       <div className="container">
         <div className="card">
           <h1>Chat App</h1>
-          <h2>Login</h2>
+          <h2><b>Login</b></h2>
 
           <form onSubmit={handleSubmit}>
             <label>Email</label>
@@ -54,7 +54,7 @@ function App() {
       <div className="container">
         <div className="card">
           <h1>Chat App</h1>
-          <h2>Sign up</h2>
+          <h2><b>Sign up</b></h2>
           <form onSubmit={handleSubmit}>
             <label>Email</label>
             <input
@@ -80,7 +80,7 @@ function App() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-            <button type="submit">Sign up</button>
+            <button type="submit">Create account</button>
           </form>
           <p>
             Already a user? <button onClick={()=>setisNew(false)}>Login</button>
