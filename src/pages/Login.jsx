@@ -1,7 +1,9 @@
 import { useState } from "react";
-import "./App.css";
+import { useNavigate } from "react-router-dom";
+import "./Login.css";
 
 function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -40,7 +42,10 @@ function Login() {
           <button type="submit">Login</button>
         </form>
         <p>
-          New user? <button onClick={() => setisNew(true)}>Sign up</button>
+          New user?{" "}
+          <button type="button" onClick={() => navigate("/signup")}>
+            Sign up
+          </button>
         </p>
       </div>
     </div>
