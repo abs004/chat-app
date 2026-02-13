@@ -39,7 +39,7 @@ function Login() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <button type="submit">Login</button>
+          <button type="submit">Login</button> /login
         </form>
         <p>
           New user?{" "}
