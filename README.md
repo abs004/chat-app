@@ -1,16 +1,65 @@
-# React + Vite
+# ⚡ Real-Time 1v1 Random Chat App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, real-time random chat application (Omegle style) built with React, Node.js, and Socket.io.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Anonymous 1v1 Matching**: Connect with random strangers instantly.
+- **Real-Time Messaging**: Built on Socket.io for millisecond-latency communication.
+- **JWT Authentication**: Secure login and signup system.
+- **Private Rooms**: Each chat session is isolated in a unique socket room.
+- **Dynamic Avatars**: Unique avatars for users and partners using DiceBear API.
+- **Clean UI**: Dark-themed, responsive sidebar-based layout.
+- **Presence Tracking**: Automatic detection of partner disconnects or leaves.
 
-## React Compiler
+## 🛠️ Tech Stack
 
-The React Compiler is not enabled on this template. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Frontend**: React (Vite), CSS3, Socket.io-client
+- **Backend**: Node.js, Express, Socket.io
+- **Database**: MongoDB (Mongoose)
+- **Security**: JWT (JSON Web Tokens), Bcrypt for password hashing
 
-## Expanding the ESLint configuration
+## 📦 Installation
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Backend
+1. Navigate to the `backend` folder:
+   ```bash
+   cd backend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file and add your credentials:
+   ```env
+   PORT=3000
+   MONGO_URI=your_mongodb_connection_string
+   JWT_SECRET=your_secret_key
+   ```
+4. Start the server:
+   ```bash
+   node server.js
+   ```
+
+### Frontend
+1. Navigate to the root directory:
+   ```bash
+   cd ..
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+## 🎮 How to Use
+1. Open the application in two different browsers (or one in Incognito).
+2. Create two different accounts and log in.
+3. Both users should click the "Start Chatting" button.
+4. The system will match you instantly, and you can begin messaging!
+
+## 🛡️ Safety Warning
+Be careful out there! Don't share personal information with strangers.

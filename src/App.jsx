@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ChatLanding from "./pages/Chat_landing";
-// import Chat from "./pages/Chat"; // later
+import Chat from "./pages/Chat";
 
 function App() {
   return (
@@ -19,8 +19,8 @@ function App() {
         {/* Protected landing page after login */}
         <Route path="/chat-landing" element={<ChatLanding />} />
 
-        {/* Protected route later */}
-        {/* <Route path="/chat" element={<Chat />} /> */}
+        {/* Chat page */}
+        <Route path="/chat" element={<Chat />} />
 
         {/* Fallback for unknown routes */}
         <Route path="*" element={<Navigate to="/login" />} />

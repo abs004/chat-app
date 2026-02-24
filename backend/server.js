@@ -4,13 +4,29 @@ import cors from "cors";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import User from "./models/User.js";
+import Conversation from "./models/Conversation.js";
+import Message from "./models/Message.js";
 import jwt from "jsonwebtoken";
+import { Server } from "socket.io";
+import http from "http";
 
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET;
+
+// In-memory matching queue (objects with userId and socket)
+let waitingQueue = [];
+// 1. Matching Queue & Conversations managed via Socket events
 
 
 // Middleware
@@ -43,6 +59,22 @@ function authenticateToken(req, res, next) {
     return res.status(403).json({ message: "Invalid or expired token" });
   }
 }
+
+// Socket Auth Middleware
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) {
+    return next(new Error("Authentication error"));
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = decoded.userId;
+    next();
+  } catch (err) {
+    next(new Error("Authentication error"));
+  }
+});
 
 
 // Test route
@@ -131,6 +163,86 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// 📩 Socket Events
+io.on("connection", (socket) => {
+  console.log(`User connected: ${socket.userId}`);
+
+  socket.on("match-me", async () => {
+    const userId = socket.userId;
+
+    // Check if user is already in an active conversation (e.g. on rejoin)
+    const existingConversation = await Conversation.findOne({
+      participants: userId,
+      isActive: true
+    });
+
+    if (existingConversation) {
+      socket.join(existingConversation._id.toString());
+      return socket.emit("match-found", { conversationId: existingConversation._id });
+    }
+
+    // Remove self from queue first to prevent self-match
+    waitingQueue = waitingQueue.filter(u => u.userId !== userId);
+
+    if (waitingQueue.length > 0) {
+      const partner = waitingQueue.shift();
+
+      const newConversation = new Conversation({
+        participants: [userId, partner.userId]
+      });
+
+      await newConversation.save();
+
+      // Join both to the room
+      socket.join(newConversation._id.toString());
+      partner.socket.join(newConversation._id.toString());
+
+      io.to(newConversation._id.toString()).emit("match-found", {
+        conversationId: newConversation._id
+      });
+    } else {
+      waitingQueue.push({ userId, socket });
+      socket.emit("waiting", { message: "Looking for a match..." });
+    }
+  });
+
+  socket.on("send-message", async (data) => {
+    const { conversationId, content } = data;
+    if (!conversationId || !content) return;
+
+    try {
+      const newMessage = new Message({
+        sender: socket.userId,
+        conversation: conversationId,
+        content
+      });
+
+      await newMessage.save();
+
+      // Broadcast to room
+      io.to(conversationId).emit("receive-message", newMessage);
+    } catch (err) {
+      console.error("Socket message error:", err);
+    }
+  });
+
+  socket.on("leave-chat", async (data) => {
+    const { conversationId } = data;
+    if (conversationId) {
+      await Conversation.findByIdAndUpdate(conversationId, { isActive: false });
+      socket.to(conversationId).emit("partner-disconnected");
+      socket.leave(conversationId);
+    }
+    waitingQueue = waitingQueue.filter(u => u.userId !== socket.userId);
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`User disconnected: ${socket.userId}`);
+    waitingQueue = waitingQueue.filter(u => u.userId !== socket.userId);
+    // Note: In a fuller implementation, we'd also notify active rooms here.
+  });
+});
+
 app.get("/profile", authenticateToken, (req, res) => {
   res.json({
     message: "Protected profile data",
@@ -138,8 +250,20 @@ app.get("/profile", authenticateToken, (req, res) => {
   });
 });
 
+// GET messages remains for initial history load if needed
+app.get("/messages/:conversationId", authenticateToken, async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) return res.status(404).json({ message: "Not found" });
 
+    const messages = await Message.find({ conversation: conversationId }).sort({ createdAt: 1 });
+    res.json({ messages, isActive: conversation.isActive });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
