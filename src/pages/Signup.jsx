@@ -7,12 +7,33 @@ function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  function handleSubmit(event) {
-    event.preventDefault();
-    console.log("Email:", email);
-    console.log("Password:", password);
-    alert(`Logged in as ${email}`);
+async function handleSubmit(event) {
+  event.preventDefault();
+
+  try {
+    const response = await fetch("http://localhost:3000/signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.message);
+      return;
+    }
+
+    alert("Account created successfully!");
+    navigate("/login");
+
+  } catch (error) {
+    console.error("Signup error:", error);
+    alert("Something went wrong");
   }
+}
 
   return (
     <div className="container">
