@@ -1,4 +1,4 @@
-# ⚡ Real-Time 1v1 Random Chat App
+w# ⚡ Real-Time 1v1 Random Chat App
 
 A modern, real-time random chat application (Omegle style) built with React, Node.js, and Socket.io.
 
