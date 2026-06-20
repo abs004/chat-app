@@ -1,39 +1,42 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { signup } from "../services/api/authApi.js";
 import "./Login.css";
 
-function Signup() {
+export default function Signup() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-async function handleSubmit(event) {
-  event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
 
-  try {
-    const response = await fetch("http://localhost:3000/signup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email, password })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      alert(data.message);
+    // Validate password confirmation before hitting the network
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
       return;
     }
 
-    alert("Account created successfully!");
-    navigate("/login");
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
 
-  } catch (error) {
-    console.error("Signup error:", error);
-    alert("Something went wrong");
-  }
-}
+    setLoading(true);
+
+    try {
+      await signup(email, password);
+      navigate("/login");
+    } catch (err) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="container">
@@ -42,42 +45,65 @@ async function handleSubmit(event) {
         <h2>
           <b>Sign up</b>
         </h2>
+
+        {error && (
+          <p
+            style={{
+              color: "#ef4444",
+              fontSize: "0.875rem",
+              marginBottom: "0.5rem",
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </p>
+        )}
+
         <form onSubmit={handleSubmit}>
-          <label>Email</label>
+          <label htmlFor="signup-email">Email</label>
           <input
+            id="signup-email"
             type="email"
             placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={loading}
           />
 
-          <label>Password</label>
+          <label htmlFor="signup-password">Password</label>
           <input
+            id="signup-password"
             type="password"
             placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={loading}
           />
+
           <div className="fade-in">
-            <label>Confirm Password</label>
+            <label htmlFor="signup-confirm-password">Confirm Password</label>
             <input
+              id="signup-confirm-password"
               type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Confirm your password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              disabled={loading}
             />
           </div>
-          <button type="submit">Create account</button>
-        </form>
-        <p>
-          Already a user?{" "}
-          <button type="button" onClick={() => navigate("/login")}>
-            Login
+
+          <button type="submit" disabled={loading}>
+            {loading ? "Creating account..." : "Create account"}
           </button>
+        </form>
+
+        <p>
+          Already a user? <Link to="/login">Login</Link>
         </p>
       </div>
     </div>
   );
 }
-
-export default Signup;

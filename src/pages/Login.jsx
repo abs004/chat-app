@@ -1,58 +1,58 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
+import { login } from "../services/api/authApi.js";
 import "./Login.css";
 
-function Login() {
+export default function Login() {
   const navigate = useNavigate();
+  const { login: storeAuth } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  async function handleSubmit(event) {
-    event.preventDefault();
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        alert(data.message);
-        return;
-      }
-
-      // Store JWT token
-      localStorage.setItem("token", data.token);
-
-      // Redirect to protected page
+      const { data } = await login(email, password);
+      storeAuth(data.token);
       navigate("/chat-landing");
-
-    } catch (error) {
-      console.error("Login error:", error);
-      alert("Something went wrong");
+    } catch (err) {
+      setError(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="container">
       <div className="card">
         <h1>Chat App</h1>
-        <h2><b>Login</b></h2>
+        <h2>
+          <b>Login</b>
+        </h2>
+
+        {error && (
+          <p
+            style={{
+              color: "#ef4444",
+              fontSize: "0.875rem",
+              marginBottom: "0.5rem",
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </p>
+        )}
 
         <form onSubmit={handleSubmit}>
-          <label htmlFor="email">Email</label>
+          <label htmlFor="login-email">Email</label>
           <input
-            id="email"
+            id="login-email"
             type="email"
             placeholder="Enter your email"
             value={email}
@@ -61,9 +61,9 @@ function Login() {
             disabled={loading}
           />
 
-          <label htmlFor="password">Password</label>
+          <label htmlFor="login-password">Password</label>
           <input
-            id="password"
+            id="login-password"
             type="password"
             placeholder="Enter your password"
             value={password}
@@ -78,12 +78,9 @@ function Login() {
         </form>
 
         <p>
-          New user?{" "}
-          <Link to="/signup">Sign up</Link>
+          New user? <Link to="/signup">Sign up</Link>
         </p>
       </div>
     </div>
   );
 }
-
-export default Login;
