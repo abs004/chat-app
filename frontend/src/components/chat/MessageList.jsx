@@ -13,16 +13,9 @@ const MessageList = ({ messages, userId, isActive, isTyping }) => {
   }, [messages]);
 
   return (
-    <div className="chat-messages">
+    <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-[1.15rem] custom-scrollbar">
       {!isActive && messages.length > 0 && (
-        <div
-          style={{
-            textAlign: "center",
-            margin: "1rem",
-            color: "#6b9e7d",
-            fontSize: "0.8rem",
-          }}
-        >
+        <div className="text-center my-4 text-[#6b9e7d] text-[0.8rem]">
           Conversation ended.
         </div>
       )}
@@ -37,16 +30,16 @@ const MessageList = ({ messages, userId, isActive, isTyping }) => {
 
       {/* Typing indicator — shown when partner is typing and chat is active */}
       {isTyping && isActive && (
-        <div className="msg-row msg-row--left">
+        <div className="flex items-end gap-2.5">
           <img
-            className="msg-avatar"
+            className="w-[2.2rem] h-[2.2rem] rounded-full object-cover shrink-0 border border-[#1e3a26]"
             src="https://api.dicebear.com/7.x/avataaars/svg?seed=partner"
             alt="stranger typing"
           />
-          <div className="typing-indicator">
-            <span />
-            <span />
-            <span />
+          <div className="flex items-center gap-1 bg-[#1a2e20] px-3.5 py-2.5 rounded-2xl rounded-bl-[0.2rem]">
+            <span className="w-[7px] h-[7px] rounded-full bg-[#6fcf97] animate-typing-1 inline-block" />
+            <span className="w-[7px] h-[7px] rounded-full bg-[#6fcf97] animate-typing-2 inline-block" />
+            <span className="w-[7px] h-[7px] rounded-full bg-[#6fcf97] animate-typing-3 inline-block" />
           </div>
         </div>
       )}

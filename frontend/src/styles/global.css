@@ -1,44 +1,27 @@
-/**
- * Global styles — imported once in main.jsx.
- * Contains: CSS reset, shared design tokens, and base typography.
- * Page-specific styles remain in their own CSS files.
- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
 
-/* ── Reset ──────────────────────────────────────────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
 
-/* ── Design tokens ──────────────────────────────────────────────────────── */
-:root {
-  /* Brand greens */
-  --color-primary: #22c55e;
+/* ── Custom theme tokens ─────────────────────────────────────────────────── */
+@theme {
+  --color-bg:            #0d1a12;
+  --color-surface:       #0f1f15;
+  --color-surface-hover: #1a3323;
+  --color-border:        #1e3a26;
+  --color-bubble-dark:   #1a2e20;
+
+  --color-primary:       #22c55e;
   --color-primary-hover: #16a34a;
   --color-primary-muted: #6fcf97;
 
-  /* Dark surface palette */
-  --color-bg: #0d1a12;
-  --color-surface: #0f1f15;
-  --color-surface-hover: #1a3323;
-  --color-border: #1e3a26;
-  --color-bubble-dark: #1a2e20;
-
-  /* Text */
-  --color-text-primary: #e2f0e2;
+  --color-text-primary:   #e2f0e2;
   --color-text-secondary: #6b9e7d;
-  --color-text-muted: #4b7a5a;
-  --color-white: #fff;
+  --color-text-muted:     #4b7a5a;
 
-  /* Danger */
-  --color-danger: #ef4444;
-
-  /* Typography */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* ── Base typography ────────────────────────────────────────────────────── */
+/* ── Base ────────────────────────────────────────────────────────────────── */
 html, body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -52,12 +35,49 @@ html, body {
   min-height: 100vh;
 }
 
-/* ── Link reset ─────────────────────────────────────────────────────────── */
+/* ── Custom keyframes (not replaceable with Tailwind defaults) ────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+@keyframes typing-bounce {
+  0%, 80%, 100% { transform: translateY(0); }
+  40%           { transform: translateY(-6px); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Custom utility classes ──────────────────────────────────────────────── */
+.animate-pulse-dot {
+  animation: pulse-dot 2s infinite;
+}
+
+.animate-typing-1 { animation: typing-bounce 1.2s infinite ease-in-out; }
+.animate-typing-2 { animation: typing-bounce 1.2s infinite ease-in-out 0.2s; }
+.animate-typing-3 { animation: typing-bounce 1.2s infinite ease-in-out 0.4s; }
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-in-out;
+}
+
+/* ── Custom scrollbar ────────────────────────────────────────────────────── */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #1e3a26 transparent;
+}
+.custom-scrollbar::-webkit-scrollbar       { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #1e3a26; border-radius: 3px; }
+
+/* ── Link reset ──────────────────────────────────────────────────────────── */
 a {
   color: inherit;
   text-decoration: none;
 }
-
 a:hover {
   text-decoration: underline;
 }

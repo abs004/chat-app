@@ -3,42 +3,23 @@
  * Rendered in place of the chat UI when isMatching is true.
  */
 const MatchingScreen = ({ onCancel }) => (
-  <div
-    className="chat-page"
-    style={{
-      justifyContent: "center",
-      alignItems: "center",
-      flexDirection: "column",
-    }}
-  >
-    <div
-      className="sidebar-logo-icon"
-      style={{ width: "4rem", height: "4rem", marginBottom: "1rem" }}
-    >
-      <svg
-        fill="currentColor"
-        viewBox="0 0 24 24"
-        style={{ width: "2rem", height: "2rem" }}
-      >
+  <div className="flex h-screen bg-[#0d1a12] text-[#e2f0e2] justify-center items-center flex-col overflow-hidden font-sans">
+    {/* Logo icon */}
+    <div className="w-16 h-16 bg-[#22c55e] rounded-lg flex items-center justify-center mb-4">
+      <svg fill="currentColor" viewBox="0 0 24 24" className="w-8 h-8 text-white">
         <path d="M7 2v11h3v9l7-12h-4l4-8z" />
       </svg>
     </div>
-    <h2 style={{ color: "#fff" }}>Finding a match...</h2>
-    <p style={{ color: "#6b9e7d", marginTop: "0.5rem" }}>
+
+    <h2 className="text-white text-2xl font-semibold">Finding a match...</h2>
+    <p className="text-[#6b9e7d] mt-2 text-sm">
       Waiting for another stranger to join.
     </p>
+
     <button
       id="cancel-match-btn"
       onClick={onCancel}
-      style={{
-        marginTop: "2rem",
-        padding: "0.75rem 1.5rem",
-        borderRadius: "0.5rem",
-        border: "1px solid #ef4444",
-        color: "#ef4444",
-        background: "transparent",
-        cursor: "pointer",
-      }}
+      className="mt-8 px-6 py-3 rounded-lg border border-red-500 text-red-500 bg-transparent cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-red-500 hover:text-white"
     >
       Cancel
     </button>
