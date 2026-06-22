@@ -6,6 +6,8 @@ import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import ChatLanding from "./pages/ChatLanding.jsx";
 import Chat from "./pages/Chat.jsx";
+import VerificationPending from "./pages/VerificationPending.jsx";
+import VerifyEmail from "./pages/VerifyEmail.jsx";
 
 export default function App() {
   return (
@@ -23,6 +25,8 @@ export default function App() {
             {/* Public routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/verify-pending" element={<VerificationPending />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
 
             {/* Protected routes — redirect to /login if not authenticated */}
             <Route

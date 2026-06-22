@@ -45,3 +45,23 @@ export const login = (email, password) =>
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
+
+/**
+ * Verifies an email address using the token from the verification link.
+ * @param {string} token - raw hex token from URL query param
+ * @returns {Promise<{ success: boolean, data: { message: string } }>}
+ */
+export const verifyEmail = (token) =>
+  request(`/verify-email?token=${encodeURIComponent(token)}`);
+
+/**
+ * Requests a new verification email to be sent.
+ * @param {string} email
+ * @returns {Promise<{ success: boolean, data: { message: string } }>}
+ */
+export const resendVerification = (email) =>
+  request("/resend-verification", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+

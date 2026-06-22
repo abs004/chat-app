@@ -20,6 +20,16 @@ const env = {
   CLIENT_ORIGIN: process.env.CLIENT_ORIGIN || "*",
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "1h",
   NODE_ENV: process.env.NODE_ENV || "development",
+
+  // ── Email (Nodemailer) ────────────────────────────────────────────────────
+  EMAIL_HOST: process.env.EMAIL_HOST || "smtp.gmail.com",
+  EMAIL_PORT: parseInt(process.env.EMAIL_PORT || "587", 10),
+  EMAIL_USER: process.env.EMAIL_USER || "",
+  EMAIL_PASS: process.env.EMAIL_PASS || "",
+  EMAIL_FROM: process.env.EMAIL_FROM || "CampusChat <noreply@campuschat.app>",
+
+  // ── App URL (used to build verification links) ───────────────────────────
+  APP_URL: process.env.APP_URL || "http://localhost:5173",
 };
 
 export default env;
