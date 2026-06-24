@@ -1,28 +1,57 @@
 /**
  * Full-screen overlay displayed while waiting for a match.
- * Rendered in place of the chat UI when isMatching is true.
  */
 const MatchingScreen = ({ onCancel }) => (
-  <div className="flex h-screen bg-[#0d1a12] text-[#e2f0e2] justify-center items-center flex-col overflow-hidden font-sans">
-    {/* Logo icon */}
-    <div className="w-16 h-16 bg-[#22c55e] rounded-lg flex items-center justify-center mb-4">
-      <svg fill="currentColor" viewBox="0 0 24 24" className="w-8 h-8 text-white">
-        <path d="M7 2v11h3v9l7-12h-4l4-8z" />
-      </svg>
+  <div
+    className="flex h-screen bg-[#0D0F12] text-white justify-center items-center flex-col overflow-hidden"
+    style={{ fontFamily: "'Sora', sans-serif" }}
+  >
+    {/* Animated rings */}
+    <div className="relative flex items-center justify-center mb-10">
+      <span className="absolute w-28 h-28 rounded-full border border-emerald-500/10 animate-ping" style={{ animationDuration: "2s" }} />
+      <span className="absolute w-20 h-20 rounded-full border border-emerald-500/20 animate-ping" style={{ animationDuration: "2s", animationDelay: "0.3s" }} />
+      <div className="relative w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-[0_0_32px_rgba(16,185,129,0.4)]">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+            stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
     </div>
 
-    <h2 className="text-white text-2xl font-semibold">Finding a match...</h2>
-    <p className="text-[#6b9e7d] mt-2 text-sm">
-      Waiting for another stranger to join.
-    </p>
+    <h2 className="text-2xl font-bold text-white mb-2">Finding someone…</h2>
+    <p className="text-[#6B7280] text-sm mb-10">Looking for a student to connect you with</p>
+
+    {/* Animated dots */}
+    <div className="flex items-center gap-1.5 mb-10">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <span
+          key={i}
+          className="w-1.5 h-1.5 rounded-full bg-emerald-500"
+          style={{
+            animation: "matchDot 1.4s ease-in-out infinite",
+            animationDelay: `${i * 0.15}s`,
+            opacity: 0.3,
+          }}
+        />
+      ))}
+    </div>
 
     <button
-      id="cancel-match-btn"
       onClick={onCancel}
-      className="mt-8 px-6 py-3 rounded-lg border border-red-500 text-red-500 bg-transparent cursor-pointer text-sm font-medium transition-all duration-200 hover:bg-red-500 hover:text-white"
+      className="px-6 py-2.5 rounded-xl border border-white/10 text-[#9CA3AF] bg-white/5 text-sm font-medium cursor-pointer transition-all duration-200 hover:border-red-500/50 hover:text-red-400 hover:bg-red-500/5"
     >
       Cancel
     </button>
+
+    <style>{`
+      @keyframes matchDot {
+        0%, 60%, 100% { opacity: 0.2; transform: scaleY(1); }
+        30% { opacity: 1; transform: scaleY(1.6); }
+      }
+    `}</style>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
   </div>
 );
 

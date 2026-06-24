@@ -2,8 +2,7 @@ import { useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble.jsx";
 
 /**
- * Renders the scrollable message list and the typing indicator.
- * Auto-scrolls to the bottom whenever messages change.
+ * Scrollable message list with typing indicator.
  */
 const MessageList = ({ messages, userId, isActive, isTyping }) => {
   const bottomRef = useRef(null);
@@ -13,38 +12,49 @@ const MessageList = ({ messages, userId, isActive, isTyping }) => {
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-[1.15rem] custom-scrollbar">
+    <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-3"
+      style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.06) transparent" }}>
+
       {!isActive && messages.length > 0 && (
-        <div className="text-center my-4 text-[#6b9e7d] text-[0.8rem]">
-          Conversation ended.
+        <div className="flex items-center gap-3 my-3">
+          <div className="flex-1 h-px bg-white/[0.06]" />
+          <span className="text-[0.7rem] text-[#4B5563] font-medium">Conversation ended</span>
+          <div className="flex-1 h-px bg-white/[0.06]" />
         </div>
       )}
 
       {messages.map((msg) => (
-        <MessageBubble
-          key={msg._id}
-          message={msg}
-          isOwn={msg.sender === userId}
-        />
+        <MessageBubble key={msg._id} message={msg} isOwn={msg.sender === userId} />
       ))}
 
-      {/* Typing indicator — shown when partner is typing and chat is active */}
+      {/* Typing indicator */}
       {isTyping && isActive && (
-        <div className="flex items-end gap-2.5">
+        <div className="flex items-end gap-2">
           <img
-            className="w-[2.2rem] h-[2.2rem] rounded-full object-cover shrink-0 border border-[#1e3a26]"
+            className="w-7 h-7 rounded-full object-cover shrink-0 border border-white/10"
             src="https://api.dicebear.com/7.x/avataaars/svg?seed=partner"
             alt="stranger typing"
           />
-          <div className="flex items-center gap-1 bg-[#1a2e20] px-3.5 py-2.5 rounded-2xl rounded-bl-[0.2rem]">
-            <span className="w-[7px] h-[7px] rounded-full bg-[#6fcf97] animate-typing-1 inline-block" />
-            <span className="w-[7px] h-[7px] rounded-full bg-[#6fcf97] animate-typing-2 inline-block" />
-            <span className="w-[7px] h-[7px] rounded-full bg-[#6fcf97] animate-typing-3 inline-block" />
+          <div className="flex items-center gap-1 bg-white/[0.06] border border-white/[0.07] px-3.5 py-3 rounded-2xl rounded-bl-sm">
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"
+                style={{ animation: "typingDot 1.2s ease-in-out infinite", animationDelay: `${i * 0.2}s` }}
+              />
+            ))}
           </div>
         </div>
       )}
 
       <div ref={bottomRef} />
+
+      <style>{`
+        @keyframes typingDot {
+          0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+          30% { opacity: 1; transform: translateY(-3px); }
+        }
+      `}</style>
     </div>
   );
 };

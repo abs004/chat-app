@@ -4,49 +4,30 @@ import ChatSidebar from "../components/chat/ChatSidebar.jsx";
 import MessageList from "../components/chat/MessageList.jsx";
 import ChatInputBar from "../components/chat/ChatInputBar.jsx";
 
-/**
- * Chat page — pure orchestration component.
- * All state, socket wiring, and API calls live in useChat.
- * All UI sub-sections are dedicated, single-responsibility components.
- */
 export default function Chat() {
   const {
-    messages,
-    input,
-    setInput,
-    isMatching,
-    isActive,
-    isTyping,
-    userId,
-    sendMessage,
-    handleEnd,
-    handleNext,
-    handleKeyDown,
+    messages, input, setInput,
+    isMatching, isActive, isTyping,
+    userId, sendMessage, handleEnd, handleNext, handleKeyDown,
   } = useChat();
 
-  if (isMatching) {
-    return <MatchingScreen onCancel={handleEnd} />;
-  }
+  if (isMatching) return <MatchingScreen onCancel={handleEnd} />;
 
   return (
-    <div className="flex h-screen bg-[#0d1a12] text-[#e2f0e2] overflow-hidden font-sans">
+    <div className="flex h-screen bg-[#0D0F12] text-white overflow-hidden" style={{ fontFamily: "'Sora', sans-serif" }}>
       <ChatSidebar userId={userId} />
 
-      <main className="flex-1 flex flex-col bg-[#0d1a12] overflow-hidden">
-        {/* Stranger banner */}
-        <div className="text-center px-6 py-2.5 bg-[#111f17] border-b border-[#1e3a26] text-[0.72rem] font-semibold tracking-widest text-[#6b9e7d]">
-          {isActive
-            ? "YOU ARE NOW CHATTING WITH A RANDOM STRANGER"
-            : "PARTNER HAS DISCONNECTED"}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Status banner */}
+        <div className={`flex items-center justify-center gap-2 px-6 py-2.5 border-b text-xs font-semibold tracking-widest uppercase transition-colors duration-300
+          ${isActive
+            ? "bg-emerald-500/5 border-emerald-500/10 text-emerald-500"
+            : "bg-red-500/5 border-red-500/10 text-red-400"}`}>
+          <span className={`w-1.5 h-1.5 rounded-full inline-block ${isActive ? "bg-emerald-500 animate-pulse" : "bg-red-400"}`} />
+          {isActive ? "Connected to a stranger" : "Partner disconnected"}
         </div>
 
-        <MessageList
-          messages={messages}
-          userId={userId}
-          isActive={isActive}
-          isTyping={isTyping}
-        />
-
+        <MessageList messages={messages} userId={userId} isActive={isActive} isTyping={isTyping} />
         <ChatInputBar
           input={input}
           onInputChange={(e) => setInput(e.target.value)}
@@ -57,6 +38,9 @@ export default function Chat() {
           isActive={isActive}
         />
       </main>
+
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
     </div>
   );
 }
