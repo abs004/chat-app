@@ -71,7 +71,7 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      const { data } = await login(email, password);
+      const data  = await login(email, password);
       storeAuth(data.token);
       navigate("/chat-landing");
     } catch (err) {
