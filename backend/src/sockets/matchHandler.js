@@ -27,18 +27,24 @@ const registerMatchHandlers = (socket, io) => {
     });
 
     if (existingConversation) {
-      socket.join(existingConversation._id.toString());
-      return socket.emit("match-found", {
-        conversationId: existingConversation._id,
-      });
+      const roomId = existingConversation._id.toString();
+      const roomSockets = await io.in(roomId).fetchSockets();
+
+      if (roomSockets.length > 0) {
+        socket.join(roomId);
+        return socket.emit("match-found", { conversationId: existingConversation._id });
+      } else {
+        // Partner gone — invalidate and fall through to re-queue
+        await Conversation.findByIdAndUpdate(existingConversation._id, { isActive: false });
+      }
     }
 
     // Remove self from queue to prevent self-match on rapid clicks
     waitingQueue = waitingQueue.filter((u) => u.userId !== userId);
+    // ✅ ADD THIS — flush dead sockets before matching
+    waitingQueue = waitingQueue.filter((u) => u.socket.connected);
 
     if (waitingQueue.length > 0) {
-      const partner = waitingQueue.shift();
-
       const conversation = new Conversation({
         participants: [userId, partner.userId],
       });
@@ -63,13 +69,13 @@ const registerMatchHandlers = (socket, io) => {
       socket.leave(conversationId);
     }
     // Clean up from queue if user leaves while waiting
-    waitingQueue = waitingQueue.filter((u) => u.userId !== socket.userId);
+    waitingQueue = waitingQueue.filter((u) => u.socket.id !== socket.id);
   });
 
   // ── disconnect ────────────────────────────────────────────────────────────
   socket.on("disconnect", () => {
     console.log(`[Socket] User disconnected: ${socket.userId}`);
-    waitingQueue = waitingQueue.filter((u) => u.userId !== socket.userId);
+    waitingQueue = waitingQueue.filter((u) => u.socket.id !== socket.id);
     // Future: notify active room partner here
   });
 };
