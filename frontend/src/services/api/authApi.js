@@ -11,7 +11,17 @@ const request = async (path, options = {}) => {
     ...options,
   });
 
-  const data = await res.json();
+  // Only attempt JSON parsing when the server says so.
+  // Calling res.json() on an HTML error page causes "Unexpected token '<'".
+  const contentType = res.headers.get("content-type") || "";
+  let data;
+  if (contentType.includes("application/json")) {
+    data = await res.json();
+  } else {
+    // Non-JSON body (e.g. unexpected HTML from a proxy/CDN/server crash)
+    const text = await res.text();
+    data = { message: text || "An unexpected error occurred" };
+  }
 
   if (!res.ok) {
     const err = new Error(data.message || "Request failed");
@@ -21,6 +31,7 @@ const request = async (path, options = {}) => {
 
   return data;
 };
+
 
 /**
  * Sends a signup request.

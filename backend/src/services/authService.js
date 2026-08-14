@@ -132,6 +132,8 @@ export const resendVerification = async (email) => {
   user.verificationTokenExpires = expires;
   await user.save();
 
+  // Fire-and-forget — don't block or fail the response on email delivery.
+  // Mirrors the same pattern used in signup().
   sendVerificationEmail(email, token).catch((err) => {
     console.error("[emailService] Failed to resend verification email:", err.message);
   });
