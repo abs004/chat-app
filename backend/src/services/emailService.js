@@ -2,15 +2,14 @@ import nodemailer from "nodemailer";
 import env from "../config/env.js";
 
 /**
- * Creates a Nodemailer transporter using SMTP credentials from env.
- * Called lazily per send so the module stays importable even if email
- * vars are not set in non-email contexts.
+ * Lazily-created Nodemailer transporter.
+ * Using a factory keeps the module import fast when email vars aren't set.
  */
 const createTransporter = () =>
   nodemailer.createTransport({
     host: env.EMAIL_HOST,
     port: env.EMAIL_PORT,
-    secure: env.EMAIL_PORT === 465, // true for port 465 (TLS), false for 587 (STARTTLS)
+    secure: env.EMAIL_PORT === 465, // true for 465, false for 587
     auth: {
       user: env.EMAIL_USER,
       pass: env.EMAIL_PASS,
@@ -104,4 +103,3 @@ export const sendVerificationEmail = async (to, token) => {
     `,
   });
 };
-
