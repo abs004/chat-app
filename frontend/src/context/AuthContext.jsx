@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
-import axios from "axios";
+import { API_BASE_URL } from "../constants/config.js";
 import {
   getToken,
   setToken,
@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setTokenState] = useState(() => getToken());
   const [userId, setUserId] = useState(() => getStoredUserId());
 
-  // Ref so the interceptor always reads the latest logout without stale closure.
+  // Ref so the refresh logic always reads the latest logout without stale closure.
   const logoutRef = useRef(null);
 
   /** Stores the token and updates userId from its payload. */
@@ -34,65 +34,84 @@ export const AuthProvider = ({ children }) => {
     setTokenState(null);
     setUserId(null);
     // Best-effort: tell the server to clear the httpOnly refresh cookie.
-    axios.post("/logout").catch(() => {});
+    fetch(`${API_BASE_URL}/logout`, {
+      method: "POST",
+      credentials: "include",
+    }).catch(() => {});
   }, []);
 
-  // Keep the ref in sync so the interceptor below always calls the latest logout.
+  // Keep the ref in sync so refresh logic always calls the latest logout.
   logoutRef.current = logout;
 
   /**
-   * Axios interceptor — silent refresh on 401.
+   * Monkey-patch fetch to silently refresh the access token on 401.
    *
    * On any 401 response:
-   *   1. Call POST /refresh (server reads httpOnly cookie, issues new access token).
+   *   1. Call POST /auth/refresh (server reads httpOnly cookie, issues new access token).
    *   2. Store the new access token and retry the original request once.
    *   3. If /refresh itself returns 401, log the user out.
    *
-   * `_isRetry` on the config object prevents infinite retry loops.
+   * `_isRetry` flag on the request URL prevents infinite retry loops.
    */
   useEffect(() => {
-    const interceptorId = axios.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        const originalRequest = error.config;
+    const originalFetch = window.fetch;
 
-        // Only attempt refresh on 401; skip if this is already a retry or a
-        // refresh/login/logout request itself (prevents infinite loops).
-        const isAuthRoute =
-          originalRequest.url?.includes("/refresh") ||
-          originalRequest.url?.includes("/login") ||
-          originalRequest.url?.includes("/logout");
+    window.fetch = async (input, init = {}) => {
+      const url = typeof input === "string" ? input : input?.url ?? "";
 
-        if (error.response?.status === 401 && !originalRequest._isRetry && !isAuthRoute) {
-          originalRequest._isRetry = true;
+      // Skip intercepting auth routes to prevent infinite loops
+      const isAuthRoute =
+        url.includes("/refresh") ||
+        url.includes("/login") ||
+        url.includes("/logout");
 
-          try {
-            // Ask the server to issue a new access token using the httpOnly cookie.
-            const { data } = await axios.post("/refresh", {}, { withCredentials: true });
-            const newToken = data?.data?.token;
+      const response = await originalFetch(input, init);
 
-            if (!newToken) throw new Error("No token in refresh response");
+      if (response.status === 401 && !init._isRetry && !isAuthRoute) {
+        try {
+          // Ask the server for a new access token using the httpOnly cookie
+          const refreshRes = await originalFetch(`${API_BASE_URL}/auth/refresh`, {
+            method: "POST",
+            credentials: "include",
+          });
 
-            // Persist the new token and update the Authorization header.
-            setToken(newToken);
-            setTokenState(newToken);
-            setUserId(getStoredUserId());
+          if (!refreshRes.ok) throw new Error("Refresh failed");
 
-            originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
-            return axios(originalRequest);
-          } catch {
-            // Refresh failed — force logout.
-            logoutRef.current?.();
-          }
+          const data = await refreshRes.json();
+          const newToken = data?.token;
+
+          if (!newToken) throw new Error("No token in refresh response");
+
+          // Persist the new token and update state
+          setToken(newToken);
+          setTokenState(newToken);
+          setUserId(getStoredUserId());
+
+          // Retry the original request with the new token
+          const retryInit = {
+            ...init,
+            _isRetry: true,
+            headers: {
+              ...(init.headers || {}),
+              Authorization: `Bearer ${newToken}`,
+            },
+          };
+
+          return originalFetch(input, retryInit);
+        } catch {
+          // Refresh failed — force logout
+          logoutRef.current?.();
         }
-
-        return Promise.reject(error);
       }
-    );
 
-    // Clean up the interceptor when the provider unmounts.
-    return () => axios.interceptors.response.eject(interceptorId);
-  }, []); // runs once on mount
+      return response;
+    };
+
+    // Restore original fetch on unmount
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ token, userId, login, logout }}>
