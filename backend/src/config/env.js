@@ -22,11 +22,11 @@ const env = {
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "15m",
   NODE_ENV: process.env.NODE_ENV || "development",
 
-  // ── Email (Nodemailer) ────────────────────────────────────────────────────
-  EMAIL_HOST: process.env.EMAIL_HOST || "smtp.gmail.com",
-  EMAIL_PORT: parseInt(process.env.EMAIL_PORT || "587", 10),
-  EMAIL_USER: process.env.EMAIL_USER || "",
-  EMAIL_PASS: process.env.EMAIL_PASS || "",
+  // ── Email (Nodemailer / SMTP) ──────────────────────────────────────────────
+  EMAIL_HOST: process.env.EMAIL_HOST || "smtp.resend.com",
+  EMAIL_PORT: parseInt(process.env.EMAIL_PORT || "465", 10),
+  EMAIL_USER: process.env.EMAIL_USER || "resend",
+  EMAIL_PASS: required("EMAIL_PASS"),
   EMAIL_FROM: process.env.EMAIL_FROM || "CampusChat <noreply@campuschat.app>",
 
   // ── App URL (used to build verification links) ───────────────────────────
