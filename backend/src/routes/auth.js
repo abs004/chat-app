@@ -5,6 +5,8 @@ import {
   handleLogin,
   handleVerifyEmail,
   handleResendVerification,
+  handleRefresh,
+  handleLogout,
 } from "../controllers/authController.js";
 
 const router = Router();
@@ -29,6 +31,8 @@ const signupLimiter = rateLimit({
 
 router.post("/signup", signupLimiter, handleSignup);
 router.post("/login", loginLimiter, handleLogin);
+router.post("/refresh", handleRefresh);
+router.post("/logout", handleLogout);
 router.get("/verify-email", handleVerifyEmail);
 router.post("/resend-verification", handleResendVerification);
 

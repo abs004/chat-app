@@ -16,9 +16,10 @@ const env = {
   PORT: parseInt(process.env.PORT || "3000", 10),
   MONGO_URI: required("MONGO_URI"),
   JWT_SECRET: required("JWT_SECRET"),
+  REFRESH_TOKEN_SECRET: required("REFRESH_TOKEN_SECRET"),
   // Restrict CORS in production — set CLIENT_ORIGIN in your .env
   CLIENT_ORIGIN: process.env.CLIENT_ORIGIN || "*",
-  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "1h",
+  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "15m",
   NODE_ENV: process.env.NODE_ENV || "development",
 
   // ── Email (Nodemailer) ────────────────────────────────────────────────────
