@@ -31,20 +31,31 @@ const registerMatchHandlers = (socket, io) => {
       const roomSockets = await io.in(roomId).fetchSockets();
 
       if (roomSockets.length > 0) {
+        // Partner is still connected — safe to rejoin
         socket.join(roomId);
         return socket.emit("match-found", { conversationId: existingConversation._id });
       } else {
-        // Partner gone — invalidate and fall through to re-queue
-        await Conversation.findByIdAndUpdate(existingConversation._id, { isActive: false });
+        // Partner is gone — invalidate and fall through to re-queue
+        await Conversation.findByIdAndUpdate(existingConversation._id, {
+          isActive: false,
+        });
       }
     }
 
-    // Remove self from queue to prevent self-match on rapid clicks
+    // Remove self from queue to prevent self-match on rapid clicks or reconnects
     waitingQueue = waitingQueue.filter((u) => u.userId !== userId);
-    // ✅ ADD THIS — flush dead sockets before matching
+
+    // Purge stale entries whose socket has since disconnected.
+    // Without this, a ghost entry silently matches with the next user
+    // and partner.socket.join(roomId) does nothing — leaving them in a broken room.
     waitingQueue = waitingQueue.filter((u) => u.socket.connected);
 
     if (waitingQueue.length > 0) {
+      // FIX: `const partner = waitingQueue.shift()` was missing here.
+      // Without it, `partner` is undefined → ReferenceError → silent async crash
+      // → shift() never runs → queued user stays forever → every new user crashes against them.
+      const partner = waitingQueue.shift();
+
       const conversation = new Conversation({
         participants: [userId, partner.userId],
       });
@@ -68,7 +79,8 @@ const registerMatchHandlers = (socket, io) => {
       socket.to(conversationId).emit("partner-disconnected");
       socket.leave(conversationId);
     }
-    // Clean up from queue if user leaves while waiting
+    // Remove by socket.id (not userId) so a user with two open tabs
+    // only loses the tab that actually left, not both queue entries.
     waitingQueue = waitingQueue.filter((u) => u.socket.id !== socket.id);
   });
 
@@ -76,7 +88,6 @@ const registerMatchHandlers = (socket, io) => {
   socket.on("disconnect", () => {
     console.log(`[Socket] User disconnected: ${socket.userId}`);
     waitingQueue = waitingQueue.filter((u) => u.socket.id !== socket.id);
-    // Future: notify active room partner here
   });
 };
 
