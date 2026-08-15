@@ -1,4 +1,7 @@
+import sanitize from "mongo-sanitize";
 import Message from "../models/Message.js";
+
+const MAX_CONTENT_LENGTH = 500;
 
 /**
  * Registers the send-message socket event handler for a connected socket.
@@ -8,13 +11,31 @@ import Message from "../models/Message.js";
  */
 const registerMessageHandlers = (socket, io) => {
   socket.on("send-message", async ({ conversationId, content } = {}) => {
-    if (!conversationId || !content?.trim()) return;
+    if (!conversationId) return;
+
+    // 1. Strip any MongoDB operator keys (e.g. $where, $gt) from the payload.
+    const sanitized = sanitize(content);
+
+    // 2. Trim surrounding whitespace.
+    const trimmed = typeof sanitized === "string" ? sanitized.trim() : "";
+
+    // 3. Reject empty content after sanitization + trim.
+    if (!trimmed) {
+      socket.emit("message-error", { message: "Message cannot be empty" });
+      return;
+    }
+
+    // 4. Enforce maximum message length.
+    if (trimmed.length > MAX_CONTENT_LENGTH) {
+      socket.emit("message-error", { message: "Message too long" });
+      return;
+    }
 
     try {
       const message = new Message({
         sender: socket.userId,
         conversation: conversationId,
-        content: content.trim(),
+        content: trimmed,
       });
 
       await message.save();
