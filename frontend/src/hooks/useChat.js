@@ -22,12 +22,17 @@ const useChat = () => {
   const [isTyping, setIsTyping] = useState(false);
 
   // ── Load message history when a match is found ───────────────────────────
-  const loadHistory = useCallback(async (convId) => {
+  const loadHistory = useCallback(async (convId, liveMatch = false) => {
     try {
       const { messages: history, isActive: active } =
         await fetchMessages(convId);
       setMessages(history || []);
-      setIsActive(active);
+      // For a fresh live match, trust the socket state (isActive=true already set).
+      // Only update isActive from the server when loading a pre-existing conversation
+      // that might already be closed — prevents a stale false from blanking the screen.
+      if (!liveMatch) {
+        setIsActive(active);
+      }
     } catch (err) {
       console.error("[useChat] Failed to load history:", err.message);
     }
@@ -42,7 +47,9 @@ const useChat = () => {
       setConversationId(convId);
       setIsMatching(false);
       setIsActive(true);
-      loadHistory(convId);
+      // Pass liveMatch=true so loadHistory won't overwrite isActive=true
+      // with a stale server value while the conversation is actively in progress.
+      loadHistory(convId, true);
     };
 
     const onReceiveMessage = (message) => {
