@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useSocket } from "../context/SocketContext.jsx";
@@ -16,6 +16,9 @@ const useChat = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [conversationId, setConversationId] = useState(null);
+  // Ref so the useEffect cleanup always reads the latest conversationId,
+  // not the stale value captured at the time the effect ran.
+  const conversationIdRef = useRef(null);
   const [isMatching, setIsMatching] = useState(true);
   const [isActive, setIsActive] = useState(true);
   // isTyping is wired and ready — set to true when 'typing' socket event arrives
@@ -45,6 +48,7 @@ const useChat = () => {
 
     const onMatchFound = ({ conversationId: convId }) => {
       setConversationId(convId);
+      conversationIdRef.current = convId;   // keep ref in sync
       setIsMatching(false);
       setIsActive(true);
       // Pass liveMatch=true so loadHistory won't overwrite isActive=true
@@ -78,6 +82,11 @@ const useChat = () => {
     socket.emit("match-me");
 
     return () => {
+      // Notify the server when the component unmounts (navigation away, back
+      // button, tab close). Using the ref avoids a stale closure on conversationId.
+      if (conversationIdRef.current) {
+        socket.emit("leave-chat", { conversationId: conversationIdRef.current });
+      }
       socket.off("match-found", onMatchFound);
       socket.off("receive-message", onReceiveMessage);
       socket.off("partner-disconnected", onPartnerDisconnected);
