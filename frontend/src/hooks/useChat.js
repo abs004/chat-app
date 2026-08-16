@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useBlocker } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useSocket } from "../context/SocketContext.jsx";
 import { fetchMessages } from "../services/api/messageApi.js";
@@ -16,13 +16,22 @@ const useChat = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [conversationId, setConversationId] = useState(null);
-  // Ref so the useEffect cleanup always reads the latest conversationId,
-  // not the stale value captured at the time the effect ran.
+  // Ref so event handlers / beforeunload / blocker always read the latest
+  // conversationId without stale closures.
   const conversationIdRef = useRef(null);
   const [isMatching, setIsMatching] = useState(true);
   const [isActive, setIsActive] = useState(true);
   // isTyping is wired and ready — set to true when 'typing' socket event arrives
   const [isTyping, setIsTyping] = useState(false);
+
+  // ── Helper: emit leave-chat once and clear the ref ───────────────────────
+  // Centralising emission here guarantees the ref is always nulled afterward
+  // so duplicate emissions are impossible regardless of which code path fires.
+  const emitLeaveChat = useCallback((convId) => {
+    if (!convId) return;
+    socketRef.current?.emit("leave-chat", { conversationId: convId });
+    conversationIdRef.current = null;
+  }, [socketRef]);
 
   // ── Load message history when a match is found ───────────────────────────
   const loadHistory = useCallback(async (convId, liveMatch = false) => {
@@ -82,11 +91,10 @@ const useChat = () => {
     socket.emit("match-me");
 
     return () => {
-      // Notify the server when the component unmounts (navigation away, back
-      // button, tab close). Using the ref avoids a stale closure on conversationId.
-      if (conversationIdRef.current) {
-        socket.emit("leave-chat", { conversationId: conversationIdRef.current });
-      }
+      // Do NOT emit leave-chat here — it is emitted only from explicit actions:
+      // handleEnd, handleNext, confirmed blocker navigation, and beforeunload.
+      // Emitting here would double-fire on every React strict-mode remount and
+      // on the "Next" flow where match-me must not see a stale active conversation.
       socket.off("match-found", onMatchFound);
       socket.off("receive-message", onReceiveMessage);
       socket.off("partner-disconnected", onPartnerDisconnected);
@@ -94,6 +102,45 @@ const useChat = () => {
       socket.off("stop-typing", onStopTyping);
     };
   }, [socketRef, loadHistory]);
+
+  // ── beforeunload — tab close / browser refresh ───────────────────────────
+  // Shows the native browser "Leave site?" dialog and emits leave-chat
+  // synchronously (sendBeacon-style via socket) before the page unloads.
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (!conversationIdRef.current) return;
+      // Trigger browser's native "Leave site?" confirmation
+      e.preventDefault();
+      e.returnValue = "";
+      // Best-effort synchronous emit — the socket may not flush in time on
+      // hard closes, but the backend disconnect handler is the final safety net.
+      emitLeaveChat(conversationIdRef.current);
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [emitLeaveChat]);
+
+  // ── useBlocker — intercept in-app navigation ─────────────────────────────
+  // Blocks React Router navigations (back button, link clicks, programmatic
+  // navigate()) when the user is in a live active chat.
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      isActive &&
+      conversationIdRef.current !== null &&
+      currentLocation.pathname !== nextLocation.pathname
+  );
+
+  // Confirm: user chose "Leave" — emit leave-chat then let navigation proceed
+  const confirmBlocker = useCallback(() => {
+    emitLeaveChat(conversationIdRef.current);
+    blocker.proceed?.();
+  }, [blocker, emitLeaveChat]);
+
+  // Cancel: user chose "Stay" — reset blocker without leaving
+  const cancelBlocker = useCallback(() => {
+    blocker.reset?.();
+  }, [blocker]);
 
   // ── Actions ──────────────────────────────────────────────────────────────
   const sendMessage = useCallback(() => {
@@ -106,19 +153,19 @@ const useChat = () => {
   }, [input, conversationId, isActive, socketRef]);
 
   const handleEnd = useCallback(() => {
-    socketRef.current?.emit("leave-chat", { conversationId });
+    emitLeaveChat(conversationIdRef.current);
     navigate("/chat-landing");
-  }, [conversationId, socketRef, navigate]);
+  }, [emitLeaveChat, navigate]);
 
   const handleNext = useCallback(() => {
-    socketRef.current?.emit("leave-chat", { conversationId });
+    emitLeaveChat(conversationIdRef.current);
     setConversationId(null);
     setIsMatching(true);
     setMessages([]);
     setIsActive(true);
     setIsTyping(false);
     socketRef.current?.emit("match-me");
-  }, [conversationId, socketRef]);
+  }, [emitLeaveChat, socketRef]);
 
   const handleKeyDown = useCallback(
     (e) => {
@@ -143,6 +190,10 @@ const useChat = () => {
     handleEnd,
     handleNext,
     handleKeyDown,
+    // Blocker state for the confirmation modal in Chat.jsx
+    isBlocking: blocker.state === "blocked",
+    confirmBlocker,
+    cancelBlocker,
   };
 };
 

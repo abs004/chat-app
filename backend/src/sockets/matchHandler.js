@@ -17,6 +17,15 @@ const registerMatchHandlers = (socket, io) => {
   socket.on("match-me", async () => {
     const userId = socket.userId;
 
+    // Close any stale active conversations before attempting a new match.
+    // This is a safety net for cases where leave-chat was not properly emitted
+    // (e.g. a missed beforeunload, a React strict-mode double-mount, or a
+    // network blip that prevented the event from reaching the server).
+    await Conversation.updateMany(
+      { participants: userId, isActive: true },
+      { isActive: false }
+    );
+
     // If user already has an active conversation (e.g. page refresh), rejoin it
     const existingConversation = await Conversation.findOne({
       participants: userId,
