@@ -32,21 +32,20 @@ messageSchema.index({ conversation: 1, createdAt: 1 });
  * Sanitizes MongoDB operator keys and enforces length constraints even if
  * the socket handler is bypassed (e.g. direct service calls, future REST routes).
  */
-messageSchema.pre("save", function (next) {
-  // Strip $ operator keys from the content field
+// ✅ New — async style, correct for Mongoose 9
+messageSchema.pre("save", async function () {
   const sanitized = sanitize(this.content);
   const trimmed = typeof sanitized === "string" ? sanitized.trim() : "";
 
   if (!trimmed) {
-    return next(new Error("Message cannot be empty"));
+    throw new Error("Message cannot be empty");
   }
 
   if (trimmed.length > MAX_CONTENT_LENGTH) {
-    return next(new Error("Message too long"));
+    throw new Error("Message too long");
   }
 
   this.content = trimmed;
-  next();
 });
 
 const Message = mongoose.model("Message", messageSchema);

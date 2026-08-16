@@ -3,9 +3,6 @@ import Conversation from "../models/Conversation.js";
 /**
  * In-memory queue of users waiting to be matched.
  * Each entry: { userId: string, socket: Socket }
- *
- * Note: This is a single-process solution. For horizontal scaling,
- * replace with a Redis-backed queue (e.g. bull or ioredis).
  */
 let waitingQueue = [];
 
