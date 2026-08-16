@@ -14,7 +14,7 @@ import errorHandler from "./middleware/errorHandler.js";
  */
 const createApp = () => {
   const app = express();
-
+  app.set("trust proxy", 1);
   // ── Middleware ────────────────────────────────────────────────────────────
   app.use(express.json());
   app.use(cookieParser());
