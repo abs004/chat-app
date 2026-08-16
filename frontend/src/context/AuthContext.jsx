@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }) => {
           if (!refreshRes.ok) throw new Error("Refresh failed");
 
           const data = await refreshRes.json();
-          const newToken = data?.token;
+          const newToken = data?.data?.token ?? data?.token;
 
           if (!newToken) throw new Error("No token in refresh response");
 

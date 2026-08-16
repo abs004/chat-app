@@ -29,7 +29,7 @@ const request = async (path, options = {}) => {
     throw err;
   }
 
-  return data;
+  return data?.data ?? data;
 };
 
 
