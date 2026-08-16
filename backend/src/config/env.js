@@ -22,12 +22,9 @@ const env = {
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "15m",
   NODE_ENV: process.env.NODE_ENV || "development",
 
-  // ── Email (Nodemailer) ────────────────────────────────────────────────────
-  EMAIL_HOST: process.env.EMAIL_HOST || "smtp.gmail.com",
-  EMAIL_PORT: parseInt(process.env.EMAIL_PORT || "587", 10),
-  EMAIL_USER: process.env.EMAIL_USER || "",
-  EMAIL_PASS: process.env.EMAIL_PASS || "",
-  EMAIL_FROM: process.env.EMAIL_FROM || "CampusChat <noreply@campuschat.app>",
+  // ── Email (Brevo HTTP API) ────────────────────────────────────────────────
+  BREVO_API_KEY: required("BREVO_API_KEY"),
+  EMAIL_FROM: process.env.EMAIL_FROM || "noreply@campuschat.app",
 
   // ── App URL (used to build verification links) ───────────────────────────
   APP_URL: process.env.APP_URL || "http://localhost:5173",
