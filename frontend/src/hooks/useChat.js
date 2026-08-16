@@ -122,14 +122,23 @@ const useChat = () => {
   }, [emitLeaveChat]);
 
   // ── useBlocker — intercept in-app navigation ─────────────────────────────
-  // Blocks React Router navigations (back button, link clicks, programmatic
-  // navigate()) when the user is in a live active chat.
-  const blocker = useBlocker(
+  // IMPORTANT: the shouldBlock function MUST be stable (not recreated each render).
+  // Closing over `isActive` (state) directly causes RR v7 to re-register the blocker
+  // on every render → render loop → blank screen.
+  // Solution: store the condition in a ref; the callback reads the ref and is
+  // defined once with useCallback so React Router sees a single stable reference.
+  const shouldBlockRef = useRef(false);
+  shouldBlockRef.current =
+    isActive && conversationIdRef.current !== null && !isMatching;
+
+  const shouldBlock = useCallback(
     ({ currentLocation, nextLocation }) =>
-      isActive &&
-      conversationIdRef.current !== null &&
-      currentLocation.pathname !== nextLocation.pathname
+      shouldBlockRef.current &&
+      currentLocation.pathname !== nextLocation.pathname,
+    [] // ← stable: no deps, reads ref at call time
   );
+
+  const blocker = useBlocker(shouldBlock);
 
   // Confirm: user chose "Leave" — emit leave-chat then let navigation proceed
   const confirmBlocker = useCallback(() => {
