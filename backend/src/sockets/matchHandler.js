@@ -82,9 +82,32 @@ const registerMatchHandlers = (socket, io) => {
   });
 
   // ── disconnect ────────────────────────────────────────────────────────────
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
     console.log(`[Socket] User disconnected: ${socket.userId}`);
-    waitingQueue = waitingQueue.filter((u) => u.socket.id !== socket.id);
+
+    try {
+      // Find any active conversation this user was part of.
+      // This handles abrupt disconnects (browser close, network drop) that
+      // never emit "leave-chat", leaving the conversation stuck as isActive: true.
+      const activeConversation = await Conversation.findOneAndUpdate(
+        { participants: socket.userId, isActive: true },
+        { isActive: false },
+        { new: true }
+      );
+
+      if (activeConversation) {
+        const roomId = activeConversation._id.toString();
+        // Notify every other participant still in the room
+        socket.to(roomId).emit("partner-disconnected");
+        console.log(`[Socket] Closed conversation ${roomId} on disconnect`);
+      }
+    } catch (err) {
+      console.error("[Socket] Error handling disconnect cleanup:", err.message);
+    } finally {
+      // Always remove from the waiting queue by socket.id (not userId) so a
+      // user with two tabs only loses the tab that disconnected, not both entries.
+      waitingQueue = waitingQueue.filter((u) => u.socket.id !== socket.id);
+    }
   });
 };
 
