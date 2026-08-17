@@ -10,7 +10,7 @@ import { fetchMessages } from "../services/api/messageApi.js";
  */
 const useChat = () => {
   const navigate = useNavigate();
-  const { userId } = useAuth();
+  const { userId, authenticatedFetch } = useAuth();
   const socketRef = useSocket();
 
   const [messages, setMessages] = useState([]);
@@ -20,6 +20,7 @@ const useChat = () => {
   // conversationId without stale closures.
   const conversationIdRef = useRef(null);
   const [isMatching, setIsMatching] = useState(true);
+  const isMatchingRef = useRef(true); // Track for reconnect handler
   const [isActive, setIsActive] = useState(true);
   // isTyping is wired and ready — set to true when 'typing' socket event arrives
   const [isTyping, setIsTyping] = useState(false);
@@ -37,7 +38,7 @@ const useChat = () => {
   const loadHistory = useCallback(async (convId, liveMatch = false) => {
     try {
       const { messages: history, isActive: active } =
-        await fetchMessages(convId);
+        await fetchMessages(convId, authenticatedFetch);
       setMessages(history || []);
       // For a fresh live match, trust the socket state (isActive=true already set).
       // Only update isActive from the server when loading a pre-existing conversation
@@ -48,7 +49,7 @@ const useChat = () => {
     } catch (err) {
       console.error("[useChat] Failed to load history:", err.message);
     }
-  }, []);
+  }, [authenticatedFetch]);
 
   // ── Socket event listeners ───────────────────────────────────────────────
   useEffect(() => {
@@ -59,6 +60,7 @@ const useChat = () => {
       setConversationId(convId);
       conversationIdRef.current = convId;   // keep ref in sync
       setIsMatching(false);
+      isMatchingRef.current = false;
       setIsActive(true);
       // Pass liveMatch=true so loadHistory won't overwrite isActive=true
       // with a stale server value while the conversation is actively in progress.
@@ -79,12 +81,20 @@ const useChat = () => {
     const onStopTyping = () => setIsTyping(false);
     const onConnectError = (err) => console.error("[Socket] connection error:", err.message);
 
+    // Re-emit match-me if the socket drops and reconnects while on the matching screen
+    const onConnect = () => {
+      if (isMatchingRef.current && conversationIdRef.current === null) {
+        socket.emit("match-me");
+      }
+    };
+
     socket.on("match-found", onMatchFound);
     socket.on("receive-message", onReceiveMessage);
     socket.on("partner-disconnected", onPartnerDisconnected);
     socket.on("typing", onTyping);
     socket.on("stop-typing", onStopTyping);
     socket.on("connect_error", onConnectError);
+    socket.on("connect", onConnect);
 
     // Request a match as soon as we're wired up
     socket.emit("match-me");
@@ -100,6 +110,7 @@ const useChat = () => {
       socket.off("typing", onTyping);
       socket.off("stop-typing", onStopTyping);
       socket.off("connect_error", onConnectError);
+      socket.off("connect", onConnect);
     };
   }, [socketRef, loadHistory]);
 
@@ -170,6 +181,7 @@ const useChat = () => {
     emitLeaveChat(conversationIdRef.current);
     setConversationId(null);
     setIsMatching(true);
+    isMatchingRef.current = true;
     setMessages([]);
     setIsActive(true);
     setIsTyping(false);

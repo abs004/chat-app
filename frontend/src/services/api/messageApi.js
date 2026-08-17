@@ -1,15 +1,15 @@
 import { API_BASE_URL } from "../../constants/config.js";
 import { getToken } from "../../utils/token.js";
-import { authenticatedFetch } from "../../context/AuthContext.jsx";
 
 /**
  * Fetches the message history and active status for a conversation.
  * Requires a valid auth token in localStorage.
  *
  * @param {string} conversationId
+ * @param {Function} authenticatedFetch - the fetch wrapper from useAuth
  * @returns {Promise<{ messages: object[], isActive: boolean }>}
  */
-export const fetchMessages = async (conversationId) => {
+export const fetchMessages = async (conversationId, authenticatedFetch) => {
   const res = await authenticatedFetch(`${API_BASE_URL}/messages/${conversationId}`, {
     headers: { Authorization: `Bearer ${getToken()}` },
   });

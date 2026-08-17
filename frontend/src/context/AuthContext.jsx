@@ -14,10 +14,6 @@ import {
  */
 const AuthContext = createContext(null);
 
-export let authenticatedFetch = async () => {
-  throw new Error("authenticatedFetch called before AuthProvider mounted");
-};
-
 export const AuthProvider = ({ children }) => {
   const [token, setTokenState] = useState(() => getToken());
   const [userId, setUserId] = useState(() => getStoredUserId());
@@ -102,11 +98,6 @@ export const AuthProvider = ({ children }) => {
 
     return response;
   }, []);
-
-  // Expose to non-React files (like messageApi.js)
-  authenticatedFetch = authFetch;
-
-
 
   return (
     <AuthContext.Provider value={{ token, userId, login, logout, authenticatedFetch: authFetch }}>
