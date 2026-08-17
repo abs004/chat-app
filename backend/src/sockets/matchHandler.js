@@ -8,6 +8,14 @@ import { deleteConversationMessages } from "../utils/messageCleanup.js";
 let waitingQueue = [];
 
 /**
+ * Grace-period timers for disconnected users.
+ * Keyed by userId → NodeJS.Timeout.
+ * If the user reconnects within 10s, the timer is cancelled and the
+ * conversation is left intact so both parties can resume.
+ */
+const disconnectTimers = new Map();
+
+/**
  * Registers match and leave-chat socket event handlers for a connected socket.
  *
  * @param {import('socket.io').Socket} socket
@@ -17,6 +25,14 @@ const registerMatchHandlers = (socket, io) => {
   // ── match-me ──────────────────────────────────────────────────────────────
   socket.on("match-me", async () => {
     const userId = socket.userId;
+
+    // If the user reconnects within the grace period, cancel the pending cleanup
+    // so the conversation and messages are not wiped.
+    if (disconnectTimers.has(userId)) {
+      clearTimeout(disconnectTimers.get(userId));
+      disconnectTimers.delete(userId);
+      console.log(`[Socket] Reconnect within grace period — cancelled cleanup for ${userId}`);
+    }
 
     // Close any stale active conversations before attempting a new match.
     // This is a safety net for cases where leave-chat was not properly emitted
@@ -94,34 +110,37 @@ const registerMatchHandlers = (socket, io) => {
   });
 
   // ── disconnect ────────────────────────────────────────────────────────────
-  socket.on("disconnect", async () => {
-    console.log(`[Socket] User disconnected: ${socket.userId}`);
+  socket.on("disconnect", () => {
+    const userId = socket.userId;
+    console.log(`[Socket] User disconnected: ${userId}`);
 
-    try {
-      // Find any active conversation this user was part of.
-      // This handles abrupt disconnects (browser close, network drop) that
-      // never emit "leave-chat", leaving the conversation stuck as isActive: true.
-      const activeConversation = await Conversation.findOneAndUpdate(
-        { participants: socket.userId, isActive: true },
-        { isActive: false },
-        { new: true }
-      );
+    // Remove from the waiting queue immediately — no grace period needed here
+    // since they haven't matched yet.
+    waitingQueue = waitingQueue.filter((u) => u.socket.id !== socket.id);
 
-      if (activeConversation) {
-        const roomId = activeConversation._id.toString();
-        // Notify every other participant still in the room
-        socket.to(roomId).emit("partner-disconnected");
-        console.log(`[Socket] Closed conversation ${roomId} on disconnect`);
-        
-        deleteConversationMessages(activeConversation._id);
+    // Defer the active-conversation cleanup by 10s to survive transient network blips.
+    const timer = setTimeout(async () => {
+      disconnectTimers.delete(userId);
+      try {
+        const activeConversation = await Conversation.findOneAndUpdate(
+          { participants: userId, isActive: true },
+          { isActive: false },
+          { new: true }
+        );
+
+        if (activeConversation) {
+          const roomId = activeConversation._id.toString();
+          // Notify the partner that the user has truly left
+          socket.to(roomId).emit("partner-disconnected");
+          console.log(`[Socket] Closed conversation ${roomId} after grace period for ${userId}`);
+          deleteConversationMessages(activeConversation._id);
+        }
+      } catch (err) {
+        console.error("[Socket] Error during deferred disconnect cleanup:", err.message);
       }
-    } catch (err) {
-      console.error("[Socket] Error handling disconnect cleanup:", err.message);
-    } finally {
-      // Always remove from the waiting queue by socket.id (not userId) so a
-      // user with two tabs only loses the tab that disconnected, not both entries.
-      waitingQueue = waitingQueue.filter((u) => u.socket.id !== socket.id);
-    }
+    }, 10_000);
+
+    disconnectTimers.set(userId, timer);
   });
 };
 
