@@ -103,7 +103,8 @@ const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, 
         <span className="text-emerald-500 font-medium">Music · Gaming · Tech</span>
       </span>
     </div>
-  </div>
-);
+    </div>
+  );
+};
 
 export default ChatInputBar;
