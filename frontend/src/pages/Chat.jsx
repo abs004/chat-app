@@ -64,7 +64,7 @@ function LeaveConfirmModal({ onConfirm, onCancel }) {
 
 export default function Chat() {
   const {
-    messages, input, setInput,
+    messages, input, setInput, handleInputChange,
     isMatching, isActive, isTyping,
     userId, sendMessage, handleEnd, handleNext, handleKeyDown,
     isBlocking, confirmBlocker, cancelBlocker,
@@ -87,9 +87,24 @@ export default function Chat() {
         </div>
 
         <MessageList messages={messages} userId={userId} isActive={isActive} isTyping={isTyping} />
+
+        {/* Typing Indicator */}
+        <div className="px-6 pb-2 min-h-[32px] flex items-center">
+          {isTyping && isActive && (
+            <div className="flex items-center gap-2 text-emerald-500/80 text-sm font-medium transition-all duration-300">
+              <span>Partner is typing</span>
+              <div className="flex gap-1">
+                <span className="w-1.5 h-1.5 bg-emerald-500/80 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></span>
+                <span className="w-1.5 h-1.5 bg-emerald-500/80 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></span>
+                <span className="w-1.5 h-1.5 bg-emerald-500/80 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></span>
+              </div>
+            </div>
+          )}
+        </div>
+
         <ChatInputBar
           input={input}
-          onInputChange={(e) => setInput(e.target.value)}
+          onInputChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onSend={sendMessage}
           onEnd={handleEnd}

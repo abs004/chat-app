@@ -22,8 +22,8 @@ const useChat = () => {
   const [isMatching, setIsMatching] = useState(true);
   const isMatchingRef = useRef(true); // Track for reconnect handler
   const [isActive, setIsActive] = useState(true);
-  // isTyping is wired and ready — set to true when 'typing' socket event arrives
   const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef(null);
 
   // ── Helper: emit leave-chat once and clear the ref ───────────────────────
   // Centralising emission here guarantees the ref is always nulled afterward
@@ -162,6 +162,33 @@ const useChat = () => {
     blocker.reset?.();
   }, [blocker]);
 
+  // ── Typing Indicator Logic ───────────────────────────────────────────────
+  const handleInputChange = useCallback((e) => {
+    const value = e.target.value;
+    setInput(value);
+
+    if (!isActive || !conversationIdRef.current) return;
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    socketRef.current?.emit("typing", { conversationId: conversationIdRef.current });
+
+    typingTimeoutRef.current = setTimeout(() => {
+      socketRef.current?.emit("stop-typing", { conversationId: conversationIdRef.current });
+    }, 2000);
+  }, [isActive, socketRef]);
+
+  // Clean up typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // ── Actions ──────────────────────────────────────────────────────────────
   const sendMessage = useCallback(() => {
     if (!input.trim() || !conversationId || !isActive) return;
@@ -207,6 +234,7 @@ const useChat = () => {
     isActive,
     isTyping,
     userId,
+    handleInputChange,
     sendMessage,
     handleEnd,
     handleNext,
