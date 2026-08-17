@@ -77,15 +77,14 @@ const useChat = () => {
     // Ready for typing indicators — wire up 'typing' event from partner
     const onTyping = () => setIsTyping(true);
     const onStopTyping = () => setIsTyping(false);
+    const onConnectError = (err) => console.error("[Socket] connection error:", err.message);
 
     socket.on("match-found", onMatchFound);
     socket.on("receive-message", onReceiveMessage);
     socket.on("partner-disconnected", onPartnerDisconnected);
     socket.on("typing", onTyping);
     socket.on("stop-typing", onStopTyping);
-    socket.on("connect_error", (err) =>
-      console.error("[Socket] connection error:", err.message)
-    );
+    socket.on("connect_error", onConnectError);
 
     // Request a match as soon as we're wired up
     socket.emit("match-me");
@@ -100,6 +99,7 @@ const useChat = () => {
       socket.off("partner-disconnected", onPartnerDisconnected);
       socket.off("typing", onTyping);
       socket.off("stop-typing", onStopTyping);
+      socket.off("connect_error", onConnectError);
     };
   }, [socketRef, loadHistory]);
 

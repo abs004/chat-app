@@ -67,9 +67,12 @@ export const handleLogin = async (req, res, next) => {
     // (the access token already signed via signToken / env.JWT_EXPIRES_IN = "15m")
     const result = await login(email, password);
 
+    // Extract the userId from the freshly minted access token
+    const { userId } = jwt.decode(result.token);
+
     // Issue a separate, longer-lived refresh token and store it in an httpOnly cookie.
     const refreshToken = jwt.sign(
-      { token: result.token }, // embed the access token so we can re-issue it
+      { userId },
       env.REFRESH_TOKEN_SECRET,
       { expiresIn: "7d" }
     );
@@ -108,16 +111,14 @@ export const handleRefresh = async (req, res, next) => {
         .json({ success: false, message: "Refresh token is invalid or expired" });
     }
 
-    // Decode the embedded access token to extract userId, then re-sign a fresh one.
-    const oldAccess = jwt.decode(decoded.token);
-    if (!oldAccess?.userId) {
+    if (!decoded?.userId) {
       return res
         .status(401)
         .json({ success: false, message: "Malformed refresh token" });
     }
 
     const { signToken } = await import("../utils/token.js");
-    const newAccessToken = signToken({ userId: oldAccess.userId });
+    const newAccessToken = signToken({ userId: decoded.userId });
 
     return sendSuccess(res, { token: newAccessToken });
   } catch (err) {
