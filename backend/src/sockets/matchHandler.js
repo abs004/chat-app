@@ -1,4 +1,5 @@
 import Conversation from "../models/Conversation.js";
+import { deleteConversationMessages } from "../utils/messageCleanup.js";
 
 /**
  * In-memory queue of users waiting to be matched.
@@ -45,6 +46,7 @@ const registerMatchHandlers = (socket, io) => {
         await Conversation.findByIdAndUpdate(existingConversation._id, {
           isActive: false,
         });
+        deleteConversationMessages(existingConversation._id);
       }
     }
 
@@ -84,6 +86,7 @@ const registerMatchHandlers = (socket, io) => {
       await Conversation.findByIdAndUpdate(conversationId, { isActive: false });
       socket.to(conversationId).emit("partner-disconnected");
       socket.leave(conversationId);
+      deleteConversationMessages(conversationId);
     }
     // Remove by socket.id (not userId) so a user with two open tabs
     // only loses the tab that actually left, not both queue entries.
@@ -109,6 +112,8 @@ const registerMatchHandlers = (socket, io) => {
         // Notify every other participant still in the room
         socket.to(roomId).emit("partner-disconnected");
         console.log(`[Socket] Closed conversation ${roomId} on disconnect`);
+        
+        deleteConversationMessages(activeConversation._id);
       }
     } catch (err) {
       console.error("[Socket] Error handling disconnect cleanup:", err.message);
