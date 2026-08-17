@@ -34,6 +34,21 @@ const registerMatchHandlers = (socket, io) => {
       console.log(`[Socket] Reconnect within grace period — cancelled cleanup for ${userId}`);
     }
 
+    // Check if there is an active conversation to rejoin.
+    // We trust the disconnect timer as the source of truth: if the conversation
+    // is still isActive: true, it means the grace period hasn't expired yet.
+    const conversation = await Conversation.findOne({
+      participants: userId,
+      isActive: true,
+    });
+
+    if (conversation) {
+      const roomId = conversation._id.toString();
+      socket.join(roomId);
+      socket.emit("match-found", { conversationId: conversation._id });
+      return;
+    }
+
     // Close any stale active conversations before attempting a new match.
     // This is a safety net for cases where leave-chat was not properly emitted
     // (e.g. a missed beforeunload, a React strict-mode double-mount, or a
@@ -42,29 +57,6 @@ const registerMatchHandlers = (socket, io) => {
       { participants: userId, isActive: true },
       { isActive: false }
     );
-
-    // If user already has an active conversation (e.g. page refresh), rejoin it
-    const existingConversation = await Conversation.findOne({
-      participants: userId,
-      isActive: true,
-    });
-
-    if (existingConversation) {
-      const roomId = existingConversation._id.toString();
-      const roomSockets = await io.in(roomId).fetchSockets();
-
-      if (roomSockets.length > 0) {
-        // Partner is still connected — safe to rejoin
-        socket.join(roomId);
-        return socket.emit("match-found", { conversationId: existingConversation._id });
-      } else {
-        // Partner is gone — invalidate and fall through to re-queue
-        await Conversation.findByIdAndUpdate(existingConversation._id, {
-          isActive: false,
-        });
-        deleteConversationMessages(existingConversation._id);
-      }
-    }
 
     // Remove self from queue to prevent self-match on rapid clicks or reconnects
     waitingQueue = waitingQueue.filter((u) => u.userId !== userId);

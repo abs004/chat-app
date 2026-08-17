@@ -123,9 +123,6 @@ const useChat = () => {
       // Trigger browser's native "Leave site?" confirmation
       e.preventDefault();
       e.returnValue = "";
-      // Best-effort synchronous emit — the socket may not flush in time on
-      // hard closes, but the backend disconnect handler is the final safety net.
-      emitLeaveChat(conversationIdRef.current);
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
