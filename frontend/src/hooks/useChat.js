@@ -81,11 +81,11 @@ const useChat = () => {
     const onStopTyping = () => setIsTyping(false);
     const onConnectError = (err) => console.error("[Socket] connection error:", err.message);
 
-    // Re-emit match-me if the socket drops and reconnects while on the matching screen
+    // Re-emit match-me if the socket drops and reconnects
     const onConnect = () => {
-      if (isMatchingRef.current && conversationIdRef.current === null) {
-        socket.emit("match-me");
-      }
+      // Always emit match-me on reconnect to clear any backend disconnect timers
+      // and ensure the socket is rejoined to the active conversation room.
+      socket.emit("match-me");
     };
 
     socket.on("match-found", onMatchFound);

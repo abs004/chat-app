@@ -102,13 +102,24 @@ const registerMatchHandlers = (socket, io) => {
   });
 
   // ── disconnect ────────────────────────────────────────────────────────────
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
     const userId = socket.userId;
     console.log(`[Socket] User disconnected: ${userId}`);
 
     // Remove from the waiting queue immediately — no grace period needed here
     // since they haven't matched yet.
     waitingQueue = waitingQueue.filter((u) => u.socket.id !== socket.id);
+
+    // If the user has another active socket (e.g. from a fast page reload or strict-mode
+    // where the new socket connected before the old socket's disconnect event fired),
+    // skip the timer completely so we don't accidentally kill their ongoing session.
+    const sockets = await io.fetchSockets();
+    const hasActiveSocket = sockets.some((s) => s.userId === userId && s.id !== socket.id);
+
+    if (hasActiveSocket) {
+      console.log(`[Socket] User ${userId} has another active socket. Skipping cleanup timer.`);
+      return;
+    }
 
     // Defer the active-conversation cleanup by 10s to survive transient network blips.
     const timer = setTimeout(async () => {
