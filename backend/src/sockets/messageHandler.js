@@ -13,6 +13,16 @@ const registerMessageHandlers = (socket, io) => {
   socket.on("send-message", async ({ conversationId, content } = {}) => {
     if (!conversationId) return;
 
+    socket.on("typing", ({ conversationId } = {}) => {
+      if (!conversationId) return;
+      socket.to(conversationId).emit("typing");
+    });
+
+    socket.on("stop-typing", ({ conversationId } = {}) => {
+      if (!conversationId) return;
+      socket.to(conversationId).emit("stop-typing");
+    });
+
     // 1. Strip any MongoDB operator keys (e.g. $where, $gt) from the payload.
     const sanitized = sanitize(content);
 
