@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }) => {
       if (response.status === 401 && !init._isRetry && !isAuthRoute) {
         try {
           // Ask the server for a new access token using the httpOnly cookie
-          const refreshRes = await originalFetch(`${API_BASE_URL}/auth/refresh`, {
+          const refreshRes = await originalFetch(`${API_BASE_URL}/refresh`, {
             method: "POST",
             credentials: "include",
           });

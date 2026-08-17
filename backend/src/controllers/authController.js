@@ -14,8 +14,8 @@ const REFRESH_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
  */
 const refreshCookieOptions = {
   httpOnly: true,
-  secure: env.NODE_ENV === "production",
-  sameSite: "strict",
+  secure: true,
+  sameSite: "none",
   maxAge: REFRESH_COOKIE_MAX_AGE_MS,
   path: "/",
 };
@@ -133,8 +133,8 @@ export const handleRefresh = async (req, res, next) => {
 export const handleLogout = (_req, res) => {
   res.clearCookie("refreshToken", {
     httpOnly: true,
-    secure: env.NODE_ENV === "production",
-    sameSite: "strict",
+    secure: true,
+    sameSite: "none",
     path: "/",
   });
   return res.status(200).json({ success: true, message: "Logged out successfully" });
