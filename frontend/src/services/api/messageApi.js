@@ -1,5 +1,6 @@
 import { API_BASE_URL } from "../../constants/config.js";
 import { getToken } from "../../utils/token.js";
+import { authenticatedFetch } from "../../context/AuthContext.jsx";
 
 /**
  * Fetches the message history and active status for a conversation.
@@ -9,7 +10,7 @@ import { getToken } from "../../utils/token.js";
  * @returns {Promise<{ messages: object[], isActive: boolean }>}
  */
 export const fetchMessages = async (conversationId) => {
-  const res = await fetch(`${API_BASE_URL}/messages/${conversationId}`, {
+  const res = await authenticatedFetch(`${API_BASE_URL}/messages/${conversationId}`, {
     headers: { Authorization: `Bearer ${getToken()}` },
   });
 

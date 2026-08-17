@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
+import { createContext, useContext, useState, useCallback, useRef } from "react";
 import { API_BASE_URL } from "../constants/config.js";
 import {
   getToken,
@@ -13,6 +13,10 @@ import {
  * touching localStorage or decoding JWTs themselves.
  */
 const AuthContext = createContext(null);
+
+export let authenticatedFetch = async () => {
+  throw new Error("authenticatedFetch called before AuthProvider mounted");
+};
 
 export const AuthProvider = ({ children }) => {
   const [token, setTokenState] = useState(() => getToken());
@@ -44,77 +48,68 @@ export const AuthProvider = ({ children }) => {
   logoutRef.current = logout;
 
   /**
-   * Monkey-patch fetch to silently refresh the access token on 401.
-   *
-   * On any 401 response:
-   *   1. Call POST /auth/refresh (server reads httpOnly cookie, issues new access token).
-   *   2. Store the new access token and retry the original request once.
-   *   3. If /refresh itself returns 401, log the user out.
-   *
-   * `_isRetry` flag on the request URL prevents infinite retry loops.
+   * Wraps fetch with 401 retry logic:
+   *   1. Call POST /refresh to get a new token via httpOnly cookie.
+   *   2. Retry original request.
+   *   3. Log out if refresh fails.
    */
-  useEffect(() => {
-    const originalFetch = window.fetch;
+  const authFetch = useCallback(async (input, init = {}) => {
+    const url = typeof input === "string" ? input : input?.url ?? "";
+    
+    // Skip intercepting auth routes to prevent infinite loops (if accidentally used)
+    const isAuthRoute =
+      url.includes("/refresh") ||
+      url.includes("/login") ||
+      url.includes("/logout");
 
-    window.fetch = async (input, init = {}) => {
-      const url = typeof input === "string" ? input : input?.url ?? "";
+    const response = await fetch(input, init);
 
-      // Skip intercepting auth routes to prevent infinite loops
-      const isAuthRoute =
-        url.includes("/refresh") ||
-        url.includes("/login") ||
-        url.includes("/logout");
+    if (response.status === 401 && !init._isRetry && !isAuthRoute) {
+      try {
+        const refreshRes = await fetch(`${API_BASE_URL}/refresh`, {
+          method: "POST",
+          credentials: "include",
+        });
 
-      const response = await originalFetch(input, init);
+        if (!refreshRes.ok) throw new Error("Refresh failed");
 
-      if (response.status === 401 && !init._isRetry && !isAuthRoute) {
-        try {
-          // Ask the server for a new access token using the httpOnly cookie
-          const refreshRes = await originalFetch(`${API_BASE_URL}/refresh`, {
-            method: "POST",
-            credentials: "include",
-          });
+        const data = await refreshRes.json();
+        const newToken = data?.data?.token ?? data?.token;
 
-          if (!refreshRes.ok) throw new Error("Refresh failed");
+        if (!newToken) throw new Error("No token in refresh response");
 
-          const data = await refreshRes.json();
-          const newToken = data?.data?.token ?? data?.token;
+        // Persist the new token and update state
+        setToken(newToken);
+        setTokenState(newToken);
+        setUserId(getStoredUserId());
 
-          if (!newToken) throw new Error("No token in refresh response");
+        // Retry the original request with the new token
+        const retryInit = {
+          ...init,
+          _isRetry: true,
+          headers: {
+            ...(init.headers || {}),
+            Authorization: `Bearer ${newToken}`,
+          },
+        };
 
-          // Persist the new token and update state
-          setToken(newToken);
-          setTokenState(newToken);
-          setUserId(getStoredUserId());
-
-          // Retry the original request with the new token
-          const retryInit = {
-            ...init,
-            _isRetry: true,
-            headers: {
-              ...(init.headers || {}),
-              Authorization: `Bearer ${newToken}`,
-            },
-          };
-
-          return originalFetch(input, retryInit);
-        } catch {
-          // Refresh failed — force logout
-          logoutRef.current?.();
-        }
+        return fetch(input, retryInit);
+      } catch {
+        // Refresh failed — force logout
+        logoutRef.current?.();
       }
+    }
 
-      return response;
-    };
-
-    // Restore original fetch on unmount
-    return () => {
-      window.fetch = originalFetch;
-    };
+    return response;
   }, []);
 
+  // Expose to non-React files (like messageApi.js)
+  authenticatedFetch = authFetch;
+
+
+
   return (
-    <AuthContext.Provider value={{ token, userId, login, logout }}>
+    <AuthContext.Provider value={{ token, userId, login, logout, authenticatedFetch: authFetch }}>
       {children}
     </AuthContext.Provider>
   );
