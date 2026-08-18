@@ -22,6 +22,7 @@ const useChat = () => {
   const [isMatching, setIsMatching] = useState(true);
   const isMatchingRef = useRef(true); // Track for reconnect handler
   const [isActive, setIsActive] = useState(true);
+  const [partnerUserId, setPartnerUserId] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
 
@@ -56,9 +57,10 @@ const useChat = () => {
     const socket = socketRef.current;
     if (!socket) return;
 
-    const onMatchFound = ({ conversationId: convId }) => {
+    const onMatchFound = ({ conversationId: convId, partnerUserId: pId }) => {
       setConversationId(convId);
       conversationIdRef.current = convId;   // keep ref in sync
+      setPartnerUserId(pId);
       setIsMatching(false);
       isMatchingRef.current = false;
       setIsActive(true);
@@ -204,11 +206,13 @@ const useChat = () => {
   const handleNext = useCallback(() => {
     emitLeaveChat(conversationIdRef.current);
     setConversationId(null);
+    setPartnerUserId(null);
     setIsMatching(true);
     isMatchingRef.current = true;
     setMessages([]);
     setIsActive(true);
     setIsTyping(false);
+    
     socketRef.current?.emit("match-me");
   }, [emitLeaveChat, socketRef]);
 
@@ -231,6 +235,7 @@ const useChat = () => {
     isActive,
     isTyping,
     userId,
+    partnerUserId,
     handleInputChange,
     sendMessage,
     handleEnd,

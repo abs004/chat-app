@@ -1,4 +1,5 @@
 import Conversation from "../models/Conversation.js";
+import User from "../models/User.js";
 import { deleteConversationMessages } from "../utils/messageCleanup.js";
 
 /**
@@ -25,6 +26,11 @@ const registerMatchHandlers = (socket, io) => {
   // ── match-me ──────────────────────────────────────────────────────────────
   socket.on("match-me", async () => {
     const userId = socket.userId;
+    
+    // Fetch blockedUsers from DB for security
+    const reporterUser = await User.findById(userId).select("blockedUsers");
+    const blockedUsers = reporterUser?.blockedUsers ?? [];
+    socket.blockedUsers = blockedUsers;
 
     // If the user reconnects within the grace period, cancel the pending cleanup
     // so the conversation and messages are not wiped.
@@ -45,7 +51,9 @@ const registerMatchHandlers = (socket, io) => {
     if (conversation) {
       const roomId = conversation._id.toString();
       socket.join(roomId);
-      socket.emit("match-found", { conversationId: conversation._id });
+      
+      const partnerUserId = conversation.participants.find(p => p !== userId);
+      socket.emit("match-found", { conversationId: conversation._id, partnerUserId });
       return;
     }
 
@@ -66,11 +74,13 @@ const registerMatchHandlers = (socket, io) => {
     // and partner.socket.join(roomId) does nothing — leaving them in a broken room.
     waitingQueue = waitingQueue.filter((u) => u.socket.connected);
 
-    if (waitingQueue.length > 0) {
-      // FIX: `const partner = waitingQueue.shift()` was missing here.
-      // Without it, `partner` is undefined → ReferenceError → silent async crash
-      // → shift() never runs → queued user stays forever → every new user crashes against them.
-      const partner = waitingQueue.shift();
+    // Find a partner who hasn't blocked this user and whom this user hasn't blocked
+    const partnerIndex = waitingQueue.findIndex(
+      (u) => !blockedUsers.includes(u.userId) && !(u.socket.blockedUsers || []).includes(userId)
+    );
+
+    if (partnerIndex !== -1) {
+      const partner = waitingQueue.splice(partnerIndex, 1)[0];
 
       const conversation = new Conversation({
         participants: [userId, partner.userId],
@@ -81,7 +91,8 @@ const registerMatchHandlers = (socket, io) => {
       socket.join(roomId);
       partner.socket.join(roomId);
 
-      io.to(roomId).emit("match-found", { conversationId: conversation._id });
+      socket.emit("match-found", { conversationId: conversation._id, partnerUserId: partner.userId });
+      partner.socket.emit("match-found", { conversationId: conversation._id, partnerUserId: userId });
     } else {
       waitingQueue.push({ userId, socket });
       socket.emit("waiting", { message: "Looking for a match..." });

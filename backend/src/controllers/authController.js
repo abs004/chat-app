@@ -2,6 +2,8 @@ import jwt from "jsonwebtoken";
 import { signup, login, verifyEmail, resendVerification } from "../services/authService.js";
 import { sendSuccess } from "../utils/response.js";
 import env from "../config/env.js";
+import Report from "../models/Report.js";
+import User from "../models/User.js";
 
 const ALLOWED_DOMAIN = "@gecskp.ac.in";
 
@@ -179,6 +181,49 @@ export const handleResendVerification = async (req, res, next) => {
 
     const result = await resendVerification(email);
     return sendSuccess(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * POST /report
+ * Saves a user report to the database. Does not reveal backend actions.
+ */
+export const handleReport = async (req, res, next) => {
+  try {
+    const { reported, conversationId, reason, description } = req.body;
+    const reporter = req.user?.userId;
+
+    if (!reporter || !reported || !conversationId || !reason) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields for report" });
+    }
+
+    const validReasons = ["harassment", "impersonation", "spam", "inappropriate", "other"];
+    if (!validReasons.includes(reason)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid report reason" });
+    }
+
+    const report = new Report({
+      reporter,
+      reported,
+      conversationId,
+      reason,
+      description,
+    });
+
+    await report.save();
+
+    await User.findByIdAndUpdate(
+      reporter,
+      { $addToSet: { blockedUsers: reported } }
+    );
+
+    return sendSuccess(res, { message: "Report submitted successfully" }, 201);
   } catch (err) {
     next(err);
   }
