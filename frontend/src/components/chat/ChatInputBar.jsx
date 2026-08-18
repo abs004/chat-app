@@ -28,6 +28,7 @@ const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, 
       className="bg-[#111418] border-t border-white/[0.06] px-5 pt-3.5 pb-3 flex flex-col gap-2.5"
       style={{ fontFamily: "'Sora', sans-serif" }}
     >
+      {/* Button row */}
       <div className="flex items-center gap-2">
         {/* End */}
         <button
@@ -82,27 +83,27 @@ const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, 
         </button>
       </div>
 
-    {/* Toolbar */}
-    <div className="flex items-center gap-1">
-      <button title="Emoji (coming soon)" className="flex items-center gap-1.5 bg-transparent border-none text-[#4B5563] text-xs cursor-pointer px-2 py-1.5 rounded-lg transition-all duration-200 hover:text-[#9CA3AF] hover:bg-white/[0.04]">
-        <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="w-3.5 h-3.5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        Emoji
-      </button>
+      {/* Toolbar */}
+      <div className="flex items-center gap-1">
+        <button title="Emoji (coming soon)" className="flex items-center gap-1.5 bg-transparent border-none text-[#4B5563] text-xs cursor-pointer px-2 py-1.5 rounded-lg transition-all duration-200 hover:text-[#9CA3AF] hover:bg-white/[0.04]">
+          <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="w-3.5 h-3.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Emoji
+        </button>
 
-      <button title="Image (coming soon)" className="flex items-center gap-1.5 bg-transparent border-none text-[#4B5563] text-xs cursor-pointer px-2 py-1.5 rounded-lg transition-all duration-200 hover:text-[#9CA3AF] hover:bg-white/[0.04]">
-        <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="w-3.5 h-3.5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        Image
-      </button>
+        <button title="Image (coming soon)" className="flex items-center gap-1.5 bg-transparent border-none text-[#4B5563] text-xs cursor-pointer px-2 py-1.5 rounded-lg transition-all duration-200 hover:text-[#9CA3AF] hover:bg-white/[0.04]">
+          <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="w-3.5 h-3.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          Image
+        </button>
 
-      <span className="ml-auto text-[0.68rem] text-[#374151]">
-        Interests:{" "}
-        <span className="text-emerald-500 font-medium">Music · Gaming · Tech</span>
-      </span>
-    </div>
+        <span className="ml-auto text-[0.68rem] text-[#374151]">
+          Interests:{" "}
+          <span className="text-emerald-500 font-medium">Music · Gaming · Tech</span>
+        </span>
+      </div>
     </div>
   );
 };

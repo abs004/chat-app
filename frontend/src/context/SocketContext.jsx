@@ -4,6 +4,7 @@ import {
   connectSocket,
   disconnectSocket,
   getSocket,
+  updateSocketToken,
 } from "../services/socket/socketService.js";
 
 /**
@@ -22,6 +23,9 @@ export const SocketProvider = ({ children }) => {
     if (token) {
       // Connect (or reuse existing connection) when authenticated
       socketRef.current = connectSocket(token);
+      // Always sync the token on the existing socket so reconnects use the
+      // latest credentials — this covers HTTP-layer refreshes via authFetch.
+      updateSocketToken(token);
     } else {
       // Disconnect when logged out
       disconnectSocket();
