@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 import { API_BASE_URL } from "../../constants/config.js";
-import { setToken } from "../../utils/token.js";
+import { setToken, removeToken } from "../../utils/token.js";
 
 /**
  * Singleton Socket.IO service.
@@ -10,6 +10,7 @@ import { setToken } from "../../utils/token.js";
  * components re-render or the user navigates between pages.
  */
 let socket = null;
+let isRefreshing = false;
 
 /**
  * Creates and connects the socket if not already connected.
@@ -41,7 +42,9 @@ export const connectSocket = (token) => {
       err.message?.toLowerCase().includes("auth") ||
       err.message?.toLowerCase().includes("token");
 
-    if (!isAuthError) return;
+    if (!isAuthError || isRefreshing) return;
+
+    isRefreshing = true;
 
     try {
       const refreshRes = await fetch(`${API_BASE_URL}/refresh`, {
@@ -67,8 +70,11 @@ export const connectSocket = (token) => {
       // Refresh failed — the session is truly expired.
       // Tear down the socket and redirect to login.
       console.warn("[Socket] Token refresh failed. Redirecting to login.");
+      removeToken();
       disconnectSocket();
       window.location.href = "/login";
+    } finally {
+      isRefreshing = false;
     }
   });
 
