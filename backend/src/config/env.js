@@ -25,6 +25,7 @@ const env = {
   // ── Email (Brevo HTTP API) ────────────────────────────────────────────────
   BREVO_API_KEY: required("BREVO_API_KEY"),
   EMAIL_FROM: process.env.EMAIL_FROM || "noreply@campuschat.app",
+  ADMIN_EMAIL: required("ADMIN_EMAIL"),
 
   // ── App URL (used to build verification links) ───────────────────────────
   APP_URL: process.env.APP_URL || "http://localhost:5173",

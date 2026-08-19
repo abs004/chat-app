@@ -3,7 +3,9 @@ import { signup, login, verifyEmail, resendVerification } from "../services/auth
 import { sendSuccess } from "../utils/response.js";
 import env from "../config/env.js";
 import Report from "../models/Report.js";
-import User from "../models/User.js";
+import Conversation from "../models/Conversation.js";
+import { cancelMessageDeletion } from "../utils/messageCleanup.js";
+import { sendEmail } from "../services/emailService.js";
 
 const ALLOWED_DOMAIN = "@gecskp.ac.in";
 
@@ -188,43 +190,81 @@ export const handleResendVerification = async (req, res, next) => {
 
 /**
  * POST /report
- * Saves a user report to the database. Does not reveal backend actions.
+ * Submits a report against a user from a specific conversation.
+ * Cancels message deletion to preserve evidence, and notifies the admin.
  */
 export const handleReport = async (req, res, next) => {
   try {
-    const { reported, conversationId, reason, description } = req.body;
-    const reporter = req.user?.userId;
+    const { reportedUserId, conversationId, reason, description } = req.body;
+    const reporterId = req.user.userId;
 
-    if (!reporter || !reported || !conversationId || !reason) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing required fields for report" });
+    if (!reportedUserId || !conversationId || !reason) {
+      return res.status(400).json({ message: "reportedUserId, conversationId, and reason are required" });
     }
 
-    const validReasons = ["harassment", "impersonation", "spam", "inappropriate", "other"];
-    if (!validReasons.includes(reason)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid report reason" });
+    const allowedReasons = ["harassment", "impersonation", "spam", "inappropriate", "other"];
+    if (!allowedReasons.includes(reason)) {
+      return res.status(400).json({ message: "Invalid reason provided" });
     }
 
+    if (reporterId === reportedUserId) {
+      return res.status(400).json({ message: "You cannot report yourself" });
+    }
+
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) {
+      return res.status(403).json({ message: "Conversation not found" });
+    }
+
+    // Verify reporter is a participant
+    if (!conversation.participants.some((p) => p.toString() === reporterId)) {
+      return res.status(403).json({ message: "You are not a participant of this conversation" });
+    }
+
+    if (conversation.reported) {
+      return res.status(400).json({ message: "This conversation has already been reported" });
+    }
+
+    // Create report
     const report = new Report({
-      reporter,
-      reported,
+      reporter: reporterId,
+      reported: reportedUserId,
       conversationId,
       reason,
       description,
     });
-
     await report.save();
 
-    await User.findByIdAndUpdate(
-      reporter,
-      { $addToSet: { blockedUsers: reported } }
-    );
+    // Mark conversation as reported
+    conversation.reported = true;
+    conversation.reportedAt = new Date();
+    await conversation.save();
 
-    return sendSuccess(res, { message: "Report submitted successfully" }, 201);
-  } catch (err) {
-    next(err);
+    // Preserve messages for admin review
+    cancelMessageDeletion(conversationId);
+
+    // Notify admin
+    const emailBody = `
+      <h2 style="color:#f9fafb;margin-top:0;">New Report Submitted</h2>
+      <p style="color:#9ca3af;font-size:15px;line-height:1.6;">
+        <strong>Reporter ID:</strong> ${reporterId}<br/>
+        <strong>Reported User ID:</strong> ${reportedUserId}<br/>
+        <strong>Conversation ID:</strong> ${conversationId}<br/>
+        <strong>Reason:</strong> ${reason}<br/>
+        <strong>Description:</strong> ${description || "<em>No description provided</em>"}<br/>
+        <strong>Timestamp:</strong> ${new Date().toUTCString()}
+      </p>
+    `;
+
+    await sendEmail({
+      to: env.ADMIN_EMAIL,
+      subject: "New Report Submitted — CampusChat",
+      bodyHtml: emailBody,
+    });
+
+    return res.status(201).json({ message: "Report submitted. We will review it shortly." });
+  } catch (error) {
+    console.error("[Report] Error handling report:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

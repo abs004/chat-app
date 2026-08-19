@@ -1,6 +1,8 @@
 import Conversation from "../models/Conversation.js";
-import User from "../models/User.js";
-import { deleteConversationMessages } from "../utils/messageCleanup.js";
+import {
+  deleteConversationMessages,
+  scheduleMessageDeletion,
+} from "../utils/messageCleanup.js";
 
 /**
  * In-memory queue of users waiting to be matched.
@@ -26,11 +28,6 @@ const registerMatchHandlers = (socket, io) => {
   // ── match-me ──────────────────────────────────────────────────────────────
   socket.on("match-me", async () => {
     const userId = socket.userId;
-    
-    // Fetch blockedUsers from DB for security
-    const reporterUser = await User.findById(userId).select("blockedUsers");
-    const blockedUsers = reporterUser?.blockedUsers ?? [];
-    socket.blockedUsers = blockedUsers;
 
     // If the user reconnects within the grace period, cancel the pending cleanup
     // so the conversation and messages are not wiped.
@@ -50,9 +47,10 @@ const registerMatchHandlers = (socket, io) => {
 
     if (conversation) {
       const roomId = conversation._id.toString();
+      // Find the partner's userId from the participants array
+      const partnerUserId = conversation.participants
+        .find((p) => p.toString() !== userId);
       socket.join(roomId);
-      
-      const partnerUserId = conversation.participants.find(p => p !== userId);
       socket.emit("match-found", { conversationId: conversation._id, partnerUserId });
       return;
     }
@@ -74,13 +72,11 @@ const registerMatchHandlers = (socket, io) => {
     // and partner.socket.join(roomId) does nothing — leaving them in a broken room.
     waitingQueue = waitingQueue.filter((u) => u.socket.connected);
 
-    // Find a partner who hasn't blocked this user and whom this user hasn't blocked
-    const partnerIndex = waitingQueue.findIndex(
-      (u) => !blockedUsers.includes(u.userId) && !(u.socket.blockedUsers || []).includes(userId)
-    );
-
-    if (partnerIndex !== -1) {
-      const partner = waitingQueue.splice(partnerIndex, 1)[0];
+    if (waitingQueue.length > 0) {
+      // FIX: `const partner = waitingQueue.shift()` was missing here.
+      // Without it, `partner` is undefined → ReferenceError → silent async crash
+      // → shift() never runs → queued user stays forever → every new user crashes against them.
+      const partner = waitingQueue.shift();
 
       const conversation = new Conversation({
         participants: [userId, partner.userId],
@@ -91,6 +87,7 @@ const registerMatchHandlers = (socket, io) => {
       socket.join(roomId);
       partner.socket.join(roomId);
 
+      // Emit separately so each user receives their own partner's userId
       socket.emit("match-found", { conversationId: conversation._id, partnerUserId: partner.userId });
       partner.socket.emit("match-found", { conversationId: conversation._id, partnerUserId: userId });
     } else {
@@ -105,7 +102,8 @@ const registerMatchHandlers = (socket, io) => {
       await Conversation.findByIdAndUpdate(conversationId, { isActive: false });
       socket.to(conversationId).emit("partner-disconnected");
       socket.leave(conversationId);
-      deleteConversationMessages(conversationId);
+      // Schedule deletion after 15 min so messages are preserved if a report is filed
+      scheduleMessageDeletion(conversationId);
     }
     // Remove by socket.id (not userId) so a user with two open tabs
     // only loses the tab that actually left, not both queue entries.
@@ -147,7 +145,9 @@ const registerMatchHandlers = (socket, io) => {
           // Notify the partner that the user has truly left
           socket.to(roomId).emit("partner-disconnected");
           console.log(`[Socket] Closed conversation ${roomId} after grace period for ${userId}`);
-          deleteConversationMessages(activeConversation._id);
+          // Schedule deletion after 15 min so a report filed during the grace period
+          // can still cancel deletion and preserve messages for review.
+          scheduleMessageDeletion(activeConversation._id);
         }
       } catch (err) {
         console.error("[Socket] Error during deferred disconnect cleanup:", err.message);

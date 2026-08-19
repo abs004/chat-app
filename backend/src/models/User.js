@@ -19,7 +19,20 @@ const userSchema = new mongoose.Schema(
     },
     verificationToken: String,
     verificationTokenExpires: Date,
-    blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    // ── Ban / Admin ──────────────────────────────────────────────────────────
+    isBanned: {
+      type: Boolean,
+      default: false,
+    },
+    // null = permanent ban; a Date = ban lifts at that time
+    banExpiresAt: {
+      type: Date,
+      default: null,
+    },
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

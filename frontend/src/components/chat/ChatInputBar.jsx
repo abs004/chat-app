@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 /**
  * The bottom input bar with End, message input, Send, and Skip controls.
  */
-const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, onReport, isActive }) => {
+const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, isActive }) => {
   const [isConfirmingSkip, setIsConfirmingSkip] = useState(false);
 
   useEffect(() => {
@@ -39,17 +39,6 @@ const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, 
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
           End
-        </button>
-
-        {/* Report */}
-        <button
-          onClick={onReport}
-          className="flex items-center gap-1.5 bg-transparent border border-amber-500/30 text-amber-500/80 rounded-xl px-3.5 py-2.5 text-xs font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap shrink-0 hover:bg-amber-500/10 hover:border-amber-500/60 hover:text-amber-400"
-          title="Report User"
-        >
-          <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="w-3.5 h-3.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
-          </svg>
         </button>
 
         {/* Input */}

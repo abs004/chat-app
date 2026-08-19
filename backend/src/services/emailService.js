@@ -120,3 +120,20 @@ export const sendVerificationEmail = async (to, token) => {
 export const sendResendVerificationEmail = (to, token) =>
   sendVerificationEmail(to, token);
 
+/**
+ * Generic email sender for internal notifications using the shared HTML template.
+ * @param {Object} params
+ * @param {string} params.to - recipient email address
+ * @param {string} params.subject - email subject line
+ * @param {string} params.bodyHtml - inner HTML content
+ */
+export const sendEmail = async ({ to, subject, bodyHtml }) => {
+  const html = buildEmailHtml(bodyHtml);
+
+  await getBrevo().transactionalEmails.sendTransacEmail({
+    sender: { email: env.EMAIL_FROM, name: "CampusChat" },
+    to: [{ email: to }],
+    subject,
+    htmlContent: html,
+  });
+};

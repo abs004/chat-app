@@ -13,6 +13,20 @@ const conversationSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // ── Report tracking ──────────────────────────────────────────────────────
+    reported: {
+      type: Boolean,
+      default: false,
+    },
+    reportedAt: {
+      type: Date,
+      default: null,
+    },
+    // Tracks when the 15-minute deletion grace period started after a report
+    deletionScheduledAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

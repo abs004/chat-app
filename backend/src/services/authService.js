@@ -78,6 +78,24 @@ export const login = async (email, password) => {
     throw err;
   }
 
+  // ── Ban Check ─────────────────────────────────────────────────────────────
+  if (user.isBanned) {
+    if (user.banExpiresAt === null) {
+      const err = new Error("Your account has been permanently suspended due to violations of our community guidelines.");
+      err.statusCode = 403;
+      throw err;
+    } else if (user.banExpiresAt > new Date()) {
+      const dateStr = user.banExpiresAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+      const timeStr = user.banExpiresAt.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+      const err = new Error(`Your account is temporarily suspended until ${dateStr}, ${timeStr}. Please try again after that.`);
+      err.statusCode = 403;
+      throw err;
+    } else {
+      // Ban has expired — lift it automatically
+      await User.findByIdAndUpdate(user._id, { isBanned: false, banExpiresAt: null });
+    }
+  }
+
   const token = signToken({ userId: user._id });
   return { token };
 };
