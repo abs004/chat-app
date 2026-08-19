@@ -1,7 +1,7 @@
 /**
  * Sidebar for the chat page.
  */
-const ChatSidebar = ({ userId }) => (
+const ChatSidebar = ({ userId, onReportClick, canReport }) => (
   <aside
     className="w-[240px] min-w-[240px] bg-[#111418] border-r border-white/[0.06] flex flex-col p-5 gap-4 overflow-y-auto"
     style={{ fontFamily: "'Sora', sans-serif" }}
@@ -76,7 +76,13 @@ const ChatSidebar = ({ userId }) => (
       <p className="text-[0.72rem] text-[#6B7280] leading-snug mb-3">
         Never share personal info — your phone, address, or full name.
       </p>
-      <button className="flex items-center gap-1.5 bg-transparent border-none text-red-400 text-xs font-semibold cursor-pointer p-0 transition-opacity duration-200 hover:opacity-70">
+      <button
+        onClick={onReportClick}
+        disabled={!canReport}
+        className={`flex items-center gap-1.5 bg-transparent border-none text-xs font-semibold p-0 transition-opacity duration-200 ${
+          canReport ? "text-red-400 cursor-pointer hover:opacity-70" : "text-[#4B5563] cursor-not-allowed"
+        }`}
+      >
         <svg fill="currentColor" viewBox="0 0 20 20" className="w-3.5 h-3.5">
           <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
         </svg>
