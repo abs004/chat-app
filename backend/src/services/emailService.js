@@ -103,8 +103,12 @@ export const sendVerificationEmail = async (to, token) => {
     </p>
   `);
 
+  const senderEmail = env.EMAIL_FROM.includes("<")
+    ? env.EMAIL_FROM.match(/<(.+)>/)[1]
+    : env.EMAIL_FROM;
+
   await getBrevo().transactionalEmails.sendTransacEmail({
-    sender: { email: env.EMAIL_FROM, name: "CampusChat" },
+    sender: { email: senderEmail, name: "CampusChat" },
     to: [{ email: to }],
     subject: "Verify your CampusChat account",
     htmlContent: html,

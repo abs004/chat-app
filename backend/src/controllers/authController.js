@@ -256,11 +256,12 @@ export const handleReport = async (req, res, next) => {
       </p>
     `;
 
-    await sendEmail({
+    sendEmail({
       to: env.ADMIN_EMAIL,
       subject: "New Report Submitted — CampusChat",
       bodyHtml: emailBody,
-    });
+    })
+      .catch(err => console.error("[Report] Failed to send admin email:", err.message));
 
     return res.status(201).json({ message: "Report submitted. We will review it shortly." });
   } catch (error) {
