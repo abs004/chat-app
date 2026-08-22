@@ -6,6 +6,7 @@ import MessageList from "../components/chat/MessageList.jsx";
 import ChatInputBar from "../components/chat/ChatInputBar.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { API_BASE_URL } from "../constants/config.js";
+import { getToken } from "../utils/token.js";
 
 /**
  * Report modal for submitting user reports.
@@ -180,7 +181,10 @@ export default function Chat() {
     try {
       const res = await authenticatedFetch(`${API_BASE_URL}/report`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
         body: JSON.stringify({
           reportedUserId: partnerUserId,
           conversationId,
@@ -208,14 +212,14 @@ export default function Chat() {
 
   return (
     <div className="flex h-screen bg-[#0D0F12] text-white overflow-hidden" style={{ fontFamily: "'Sora', sans-serif" }}>
-      <ChatSidebar 
-        userId={userId} 
-        canReport={conversationId !== null} 
+      <ChatSidebar
+        userId={userId}
+        canReport={conversationId !== null}
         onReportClick={() => {
           setReportError("");
           setReportSuccess("");
           setIsReportModalOpen(true);
-        }} 
+        }}
       />
 
       <main className="flex-1 flex flex-col overflow-hidden">
