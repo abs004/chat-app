@@ -6,6 +6,7 @@ import Report from "../models/Report.js";
 import Conversation from "../models/Conversation.js";
 import { cancelMessageDeletion } from "../utils/messageCleanup.js";
 import { sendEmail } from "../services/emailService.js";
+import User from "../models/User.js";
 
 const ALLOWED_DOMAIN = "@gecskp.ac.in";
 
