@@ -19,6 +19,10 @@ const userSchema = new mongoose.Schema(
     },
     verificationToken: String,
     verificationTokenExpires: Date,
+    hasAcceptedTerms: {
+      type: Boolean,
+      default: false,
+    },
     // ── Ban / Admin ──────────────────────────────────────────────────────────
     isBanned: {
       type: Boolean,

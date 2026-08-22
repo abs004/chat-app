@@ -8,6 +8,7 @@ import {
   handleRefresh,
   handleLogout,
   handleReport,
+  handleAcceptTerms,
 } from "../controllers/authController.js";
 import authenticateToken from "../middleware/auth.js";
 
@@ -38,5 +39,6 @@ router.post("/logout", handleLogout);
 router.get("/verify-email", handleVerifyEmail);
 router.post("/resend-verification", handleResendVerification);
 router.post("/report", authenticateToken, handleReport);
+router.post("/accept-terms", authenticateToken, handleAcceptTerms);
 
 export default router;

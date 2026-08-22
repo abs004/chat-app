@@ -74,6 +74,11 @@ export const handleLogin = async (req, res, next) => {
     // Extract the userId from the freshly minted access token
     const { userId } = jwt.decode(result.token);
 
+    const user = await User.findById(userId);
+    if (!user.hasAcceptedTerms) {
+      result.hasAcceptedTerms = false;
+    }
+
     // Issue a separate, longer-lived refresh token and store it in an httpOnly cookie.
     const refreshToken = jwt.sign(
       { userId },
@@ -267,5 +272,19 @@ export const handleReport = async (req, res, next) => {
   } catch (error) {
     console.error("[Report] Error handling report:", error);
     return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+/**
+ * POST /accept-terms
+ * Marks the user as having accepted the terms of use.
+ */
+export const handleAcceptTerms = async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
+    await User.findByIdAndUpdate(userId, { hasAcceptedTerms: true });
+    return res.status(200).json({ message: "Terms accepted" });
+  } catch (err) {
+    next(err);
   }
 };
