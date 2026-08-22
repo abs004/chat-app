@@ -73,7 +73,14 @@ export default function Login() {
     try {
       const data  = await login(email, password);
       storeAuth(data.token);
-      navigate("/chat-landing");
+      
+      if (data.hasAcceptedTerms === false) {
+        localStorage.setItem("termsAccepted", "false");
+        navigate("/terms");
+      } else {
+        localStorage.setItem("termsAccepted", "true");
+        navigate("/chat-landing");
+      }
     } catch (err) {
       setError(err.message || "Something went wrong");
     } finally {

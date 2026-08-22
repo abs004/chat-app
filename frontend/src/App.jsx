@@ -8,6 +8,7 @@ import ChatLanding from "./pages/ChatLanding.jsx";
 import Chat from "./pages/Chat.jsx";
 import VerificationPending from "./pages/VerificationPending.jsx";
 import VerifyEmail from "./pages/VerifyEmail.jsx";
+import TermsOfUse from "./pages/TermsOfUse.jsx";
 
 const RootLayout = () => (
   <AuthProvider>
@@ -30,6 +31,14 @@ const router = createBrowserRouter(
       <Route path="/verify-email" element={<VerifyEmail />} />
 
       {/* Protected routes — redirect to /login if not authenticated */}
+      <Route
+        path="/terms"
+        element={
+          <ProtectedRoute requireTerms={false}>
+            <TermsOfUse />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/chat-landing"
         element={

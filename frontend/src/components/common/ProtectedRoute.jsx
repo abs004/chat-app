@@ -7,9 +7,17 @@ import { useAuth } from "../../context/AuthContext.jsx";
  * This eliminates the useEffect-based redirect pattern in page components
  * which caused a visible flash before redirecting.
  */
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, requireTerms = true }) => {
   const { token } = useAuth();
-  return token ? children : <Navigate to="/login" replace />;
+  
+  if (!token) return <Navigate to="/login" replace />;
+
+  if (requireTerms) {
+    const termsAccepted = localStorage.getItem("termsAccepted") === "true";
+    if (!termsAccepted) return <Navigate to="/terms" replace />;
+  }
+
+  return children;
 };
 
 export default ProtectedRoute;
