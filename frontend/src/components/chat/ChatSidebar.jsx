@@ -3,7 +3,7 @@
  */
 const ChatSidebar = ({ userId, onReportClick, canReport }) => (
   <aside
-    className="w-[240px] min-w-[240px] bg-[#111418] border-r border-white/[0.06] flex flex-col p-5 gap-4 overflow-y-auto"
+    className="hidden md:flex w-[240px] min-w-[240px] bg-[#111418] border-r border-white/[0.06] flex-col p-5 gap-4 overflow-y-auto"
     style={{ fontFamily: "'Sora', sans-serif" }}
   >
     {/* Logo */}

@@ -12,7 +12,7 @@ const MessageBubble = ({ message, isOwn }) => {
         src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${message.sender}`}
         alt="me"
       />
-      <div className="flex flex-col gap-1 max-w-[58%] items-end">
+      <div className="flex flex-col gap-1 max-w-[80%] sm:max-w-[58%] items-end">
         <div className="px-4 py-2.5 rounded-2xl rounded-br-sm bg-emerald-500 text-white text-sm leading-relaxed break-words shadow-[0_2px_8px_rgba(16,185,129,0.25)]">
           {message.content}
         </div>
@@ -26,7 +26,7 @@ const MessageBubble = ({ message, isOwn }) => {
         src="https://api.dicebear.com/7.x/avataaars/svg?seed=partner"
         alt="stranger"
       />
-      <div className="flex flex-col gap-1 max-w-[58%]">
+      <div className="flex flex-col gap-1 max-w-[80%] sm:max-w-[58%]">
         <div className="px-4 py-2.5 rounded-2xl rounded-bl-sm bg-white/[0.06] border border-white/[0.07] text-[#E5E7EB] text-sm leading-relaxed break-words">
           {message.content}
         </div>

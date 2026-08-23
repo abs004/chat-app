@@ -25,7 +25,7 @@ const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, 
 
   return (
     <div
-      className="bg-[#111418] border-t border-white/[0.06] px-5 pt-3.5 pb-3 flex flex-col gap-2.5"
+      className="bg-[#111418] border-t border-white/[0.06] px-3 sm:px-5 pt-3.5 pb-3 flex flex-col gap-2.5"
       style={{ fontFamily: "'Sora', sans-serif" }}
     >
       {/* Button row */}
@@ -33,12 +33,12 @@ const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, 
         {/* End */}
         <button
           onClick={onEnd}
-          className="flex items-center gap-1.5 bg-transparent border border-red-500/40 text-red-400 rounded-xl px-3.5 py-2.5 text-xs font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap shrink-0 hover:bg-red-500/10 hover:border-red-500/70"
+          className="flex items-center gap-1.5 bg-transparent border border-red-500/40 text-red-400 rounded-xl px-2.5 sm:px-3.5 py-2.5 text-xs font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap shrink-0 hover:bg-red-500/10 hover:border-red-500/70"
         >
           <svg fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" className="w-3.5 h-3.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
-          End
+          <span className="hidden sm:inline">End</span>
         </button>
 
         {/* Input */}
@@ -68,17 +68,26 @@ const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, 
         {/* Skip */}
         <button
           onClick={handleSkipClick}
-          className={`flex items-center gap-1.5 border rounded-xl px-3.5 py-2.5 text-xs font-semibold cursor-pointer shrink-0 transition-all duration-200 ${
+          className={`flex items-center gap-1.5 border rounded-xl px-2.5 sm:px-3.5 py-2.5 text-xs font-semibold cursor-pointer shrink-0 transition-all duration-200 ${
             isConfirmingSkip
               ? "bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20 hover:border-amber-500/50"
               : "bg-white/[0.04] border-white/[0.08] text-[#9CA3AF] hover:bg-emerald-500/10 hover:border-emerald-500/30 hover:text-emerald-400"
           }`}
         >
-          {isConfirmingSkip ? "Are you sure?" : "Skip"}
-          {!isConfirmingSkip && (
-            <svg fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" className="w-3.5 h-3.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-            </svg>
+          {isConfirmingSkip ? (
+            <>
+              <svg fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" className="w-3.5 h-3.5 sm:hidden">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              <span className="hidden sm:inline">Are you sure?</span>
+            </>
+          ) : (
+            <>
+              <span className="hidden sm:inline">Skip</span>
+              <svg fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" className="w-3.5 h-3.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              </svg>
+            </>
           )}
         </button>
       </div>

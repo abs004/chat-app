@@ -223,6 +223,33 @@ export default function Chat() {
       />
 
       <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile top bar */}
+        <div className="flex md:hidden items-center justify-between bg-[#111418] border-b border-white/[0.06] px-4 py-3">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center shrink-0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <span className="text-white font-semibold text-[15px] tracking-tight">G-Chat</span>
+          </div>
+          <button
+            onClick={() => {
+              setReportError("");
+              setReportSuccess("");
+              setIsReportModalOpen(true);
+            }}
+            disabled={conversationId === null}
+            className={`flex items-center justify-center p-2 rounded-lg transition-colors duration-200 ${
+              conversationId !== null ? "text-red-400 hover:bg-white/[0.05]" : "text-[#4B5563] cursor-not-allowed"
+            }`}
+          >
+            <svg fill="currentColor" viewBox="0 0 20 20" className="w-4 h-4">
+              <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </div>
+
         {/* Status banner */}
         <div className={`flex items-center justify-center gap-2 px-6 py-2.5 border-b text-xs font-semibold tracking-widest uppercase transition-colors duration-300
           ${isActive
@@ -235,7 +262,7 @@ export default function Chat() {
         <MessageList messages={messages} userId={userId} isActive={isActive} isTyping={isTyping} />
 
         {/* Typing Indicator */}
-        <div className="px-6 pb-2 min-h-[32px] flex items-center">
+        <div className="px-3 sm:px-6 pb-2 min-h-[32px] flex items-center">
           {isTyping && isActive && (
             <div className="flex items-center gap-2 text-emerald-500/80 text-sm font-medium transition-all duration-300">
               <span>Partner is typing</span>
