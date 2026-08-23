@@ -1,0 +1,36 @@
+config:
+  target: "https://chat-app-ikw8.onrender.com"
+  phases:
+    # Phase 1: warm up — 5 users over 30 seconds
+    - duration: 30
+      arrivalRate: 2
+      name: "Warm up"
+    # Phase 2: ramp up — 20 users over 60 seconds
+    - duration: 60
+      arrivalRate: 5
+      name: "Ramp up"
+    # Phase 3: peak — hold 50 users for 60 seconds
+    - duration: 60
+      arrivalRate: 10
+      name: "Peak load"
+
+scenarios:
+  - name: "Login flow"
+    flow:
+      # Hit login endpoint
+      - post:
+          url: "/login"
+          json:
+            email: "lavok@gecskp.ac.in"
+            password: "123456"
+          capture:
+            - json: "$.data.token"
+              as: "token"
+      # Wait 2 seconds like a real user
+      - think: 2
+      # Hit a protected route with the token
+      - get:
+          url: "/profile"
+          headers:
+            Authorization: "Bearer {{ token }}"
+      - think: 5
