@@ -14,7 +14,7 @@ const ChatSidebar = ({ userId, onReportClick, canReport }) => (
             stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
-      <span className="text-white font-semibold text-base tracking-tight">CampusChat</span>
+      <span className="text-white font-semibold text-base tracking-tight">G-Chat</span>
     </div>
 
     {/* User Profile */}
@@ -46,20 +46,6 @@ const ChatSidebar = ({ userId, onReportClick, canReport }) => (
         </svg>
         1v1 Chat
       </button>
-
-      <button className="flex items-center gap-2.5 bg-transparent border-none rounded-xl px-3 py-2.5 text-[#6B7280] text-sm cursor-pointer text-left w-full transition-all duration-200 hover:bg-white/[0.04] hover:text-white">
-        <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="w-4 h-4 shrink-0">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-        </svg>
-        Interests
-      </button>
-
-      <button className="flex items-center gap-2.5 bg-transparent border-none rounded-xl px-3 py-2.5 text-[#6B7280] text-sm cursor-pointer text-left w-full transition-all duration-200 hover:bg-white/[0.04] hover:text-white">
-        <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="w-4 h-4 shrink-0">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-        </svg>
-        Privacy
-      </button>
     </nav>
 
     {/* Spacer */}
@@ -87,21 +73,6 @@ const ChatSidebar = ({ userId, onReportClick, canReport }) => (
           <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
         </svg>
         Report this user
-      </button>
-    </div>
-
-    {/* Bottom icons */}
-    <div className="flex items-center gap-1 pt-3 border-t border-white/[0.06]">
-      <button title="Settings" className="bg-transparent border-none text-[#4B5563] cursor-pointer p-2 rounded-lg transition-all duration-200 hover:text-white hover:bg-white/[0.05]">
-        <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="w-4 h-4 block">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      </button>
-      <button title="Help" className="bg-transparent border-none text-[#4B5563] cursor-pointer p-2 rounded-lg transition-all duration-200 hover:text-white hover:bg-white/[0.05]">
-        <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="w-4 h-4 block">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
       </button>
     </div>
   </aside>

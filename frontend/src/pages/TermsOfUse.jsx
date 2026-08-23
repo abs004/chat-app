@@ -48,7 +48,7 @@ export default function TermsOfUse() {
                 stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <span className="text-white font-bold text-lg tracking-tight">CampusChat</span>
+          <span className="text-white font-bold text-lg tracking-tight">G-Chat</span>
         </div>
       </header>
 
@@ -60,7 +60,7 @@ export default function TermsOfUse() {
           <div className="space-y-8 text-[#9CA3AF] text-sm leading-relaxed">
             <section>
               <h2 className="text-white font-semibold text-base mb-2">1. Introduction</h2>
-              <p>CampusChat is an anonymous 1v1 chat platform exclusively for students of Government Engineering College, Palakkad. By using this platform you agree to the following terms.</p>
+              <p>G-Chat is an anonymous 1v1 chat platform exclusively for students of Government Engineering College, Palakkad. By using this platform you agree to the following terms.</p>
             </section>
 
             <section>
@@ -70,7 +70,7 @@ export default function TermsOfUse() {
 
             <section>
               <h2 className="text-white font-semibold text-base mb-2">3. Anonymous Use</h2>
-              <p>All chats are anonymous. You will not know the identity of your chat partner. Do not trust anyone's claimed name, department, or identity. CampusChat does not verify user identities during chat.</p>
+              <p>All chats are anonymous. You will not know the identity of your chat partner. Do not trust anyone's claimed name, department, or identity. G-Chat does not verify user identities during chat.</p>
             </section>
 
             <section>
@@ -90,7 +90,7 @@ export default function TermsOfUse() {
 
             <section>
               <h2 className="text-white font-semibold text-base mb-2">7. Disclaimer</h2>
-              <p>CampusChat is a student project and is not officially affiliated with Government Engineering College, Palakkad. Use at your own discretion.</p>
+              <p>G-Chat is a student project and is not officially affiliated with Government Engineering College, Palakkad. Use at your own discretion.</p>
             </section>
           </div>
         </div>

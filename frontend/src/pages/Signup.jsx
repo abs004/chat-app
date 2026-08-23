@@ -135,7 +135,7 @@ export default function Signup() {
                 </svg>
               </div>
               <span className="text-white font-semibold text-lg tracking-tight" style={{ fontFamily: "'Sora', sans-serif" }}>
-                CampusChat
+                G-Chat
               </span>
             </div>
           </div>
@@ -169,7 +169,7 @@ export default function Signup() {
                 <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <span className="text-gray-900 font-semibold text-base" style={{ fontFamily: "'Sora', sans-serif" }}>CampusChat</span>
+            <span className="text-gray-900 font-semibold text-base" style={{ fontFamily: "'Sora', sans-serif" }}>G-Chat</span>
           </div>
 
           <p className="text-xs font-semibold text-emerald-500 tracking-widest uppercase mb-2">Get started</p>

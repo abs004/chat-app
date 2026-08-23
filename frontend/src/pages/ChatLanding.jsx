@@ -105,20 +105,10 @@ export default function ChatLanding() {
                 stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <span className="text-white font-semibold text-lg tracking-tight">CampusChat</span>
+          <span className="text-white font-semibold text-lg tracking-tight">G-Chat</span>
         </div>
 
-        <nav className="hidden md:flex items-center gap-8">
-          {["Home", "About", "Safety"].map((item) => (
-            <a
-              key={item}
-              href={`#${item.toLowerCase()}`}
-              className="text-sm text-[#9CA3AF] hover:text-white transition-colors duration-200 no-underline"
-            >
-              {item}
-            </a>
-          ))}
-        </nav>
+
 
         <button
           onClick={handleLogout}
@@ -135,15 +125,6 @@ export default function ChatLanding() {
 
       {/* Hero */}
       <main className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-24 pb-16">
-        {/* Online pill */}
-        <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 mb-10">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span className="text-xs text-[#9CA3AF]">Students online right now</span>
-        </div>
-
         {/* Headline */}
         <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold leading-[1.1] tracking-tight mb-6 max-w-3xl">
           Talk to someone<br />
