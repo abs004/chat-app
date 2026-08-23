@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { API_BASE_URL } from "../constants/config.js";
+import { getToken } from "../utils/token.js";
 
 export default function TermsOfUse() {
   const [agreed, setAgreed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  
+
   const navigate = useNavigate();
   const { authenticatedFetch } = useAuth();
 
@@ -15,14 +16,17 @@ export default function TermsOfUse() {
     if (!agreed) return;
     setIsLoading(true);
     setError("");
-    
+
     try {
       const res = await authenticatedFetch(`${API_BASE_URL}/accept-terms`, {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to accept terms");
-      
+
       // Navigate to chat landing upon successful terms acceptance
       localStorage.setItem("termsAccepted", "true");
       navigate("/chat-landing");
@@ -52,38 +56,38 @@ export default function TermsOfUse() {
       <main className="flex-1 overflow-y-auto p-6 lg:p-10 bg-[#0D0F12]">
         <div className="max-w-3xl mx-auto bg-[#111418] border border-white/[0.08] rounded-2xl p-6 lg:p-10 shadow-2xl">
           <h1 className="text-2xl font-bold mb-8 text-white">Terms of Use</h1>
-          
+
           <div className="space-y-8 text-[#9CA3AF] text-sm leading-relaxed">
             <section>
               <h2 className="text-white font-semibold text-base mb-2">1. Introduction</h2>
               <p>CampusChat is an anonymous 1v1 chat platform exclusively for students of Government Engineering College, Palakkad. By using this platform you agree to the following terms.</p>
             </section>
-            
+
             <section>
               <h2 className="text-white font-semibold text-base mb-2">2. Eligibility</h2>
               <p>This platform is restricted to students with a valid @gecskp.ac.in email address.</p>
             </section>
-            
+
             <section>
               <h2 className="text-white font-semibold text-base mb-2">3. Anonymous Use</h2>
               <p>All chats are anonymous. You will not know the identity of your chat partner. Do not trust anyone's claimed name, department, or identity. CampusChat does not verify user identities during chat.</p>
             </section>
-            
+
             <section>
               <h2 className="text-white font-semibold text-base mb-2">4. Privacy</h2>
               <p>Messages are temporarily stored during your chat session and deleted within 15 minutes after the chat ends. Messages from reported conversations may be retained for review. We do not sell or share your data with third parties.</p>
             </section>
-            
+
             <section>
               <h2 className="text-white font-semibold text-base mb-2">5. Prohibited Conduct</h2>
               <p>The following are strictly prohibited: harassment, hate speech, impersonation, sharing of personal information without consent, sexual content, threats or violence, spam or flooding.</p>
             </section>
-            
+
             <section>
               <h2 className="text-white font-semibold text-base mb-2">6. Reporting & Bans</h2>
               <p>Users who violate these terms may be temporarily or permanently banned. You can report a user during or immediately after a chat using the Report button. False reports may result in action against your account.</p>
             </section>
-            
+
             <section>
               <h2 className="text-white font-semibold text-base mb-2">7. Disclaimer</h2>
               <p>CampusChat is a student project and is not officially affiliated with Government Engineering College, Palakkad. Use at your own discretion.</p>
@@ -100,7 +104,7 @@ export default function TermsOfUse() {
               {error}
             </div>
           )}
-          
+
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <label className="flex items-center gap-3 cursor-pointer group">
               <div className={`w-5 h-5 rounded flex items-center justify-center border transition-colors ${agreed ? "bg-emerald-500 border-emerald-500" : "bg-white/[0.04] border-white/[0.14] group-hover:border-white/[0.25]"}`}>
@@ -120,15 +124,14 @@ export default function TermsOfUse() {
                 I have read and agree to the Terms of Use
               </span>
             </label>
-            
+
             <button
               onClick={handleContinue}
               disabled={!agreed || isLoading}
-              className={`flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold text-sm transition-all duration-200 ${
-                agreed && !isLoading 
-                  ? "bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/20" 
+              className={`flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold text-sm transition-all duration-200 ${agreed && !isLoading
+                  ? "bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/20"
                   : "bg-white/[0.05] text-[#6B7280] cursor-not-allowed border border-white/[0.05]"
-              }`}
+                }`}
             >
               {isLoading && (
                 <svg className="animate-spin -ml-1 mr-1 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
