@@ -25,7 +25,7 @@ const buildEmailHtml = (bodyHtml) => `
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>CampusChat</title>
+    <title>G-Chat</title>
   </head>
   <body style="margin:0;padding:0;background:#0D0F12;font-family:'Segoe UI',Arial,sans-serif;">
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#0D0F12;padding:40px 0;">
@@ -42,7 +42,7 @@ const buildEmailHtml = (bodyHtml) => `
                       <span style="font-size:18px;">💬</span>
                     </td>
                     <td style="padding-left:12px;">
-                      <span style="color:#fff;font-size:20px;font-weight:700;letter-spacing:-0.3px;">CampusChat</span>
+                      <span style="color:#fff;font-size:20px;font-weight:700;letter-spacing:-0.3px;">G-Chat</span>
                     </td>
                   </tr>
                 </table>
@@ -58,7 +58,7 @@ const buildEmailHtml = (bodyHtml) => `
             <tr>
               <td style="padding:20px 40px;border-top:1px solid #1f2328;">
                 <p style="color:#4b5563;font-size:12px;margin:0;">
-                  If you didn't create a CampusChat account, you can safely ignore this email.
+                  If you didn't create a G-Chat account, you can safely ignore this email.
                 </p>
               </td>
             </tr>
@@ -108,9 +108,9 @@ export const sendVerificationEmail = async (to, token) => {
     : env.EMAIL_FROM;
 
   await getBrevo().transactionalEmails.sendTransacEmail({
-    sender: { email: senderEmail, name: "CampusChat" },
+    sender: { email: senderEmail, name: "G-Chat" },
     to: [{ email: to }],
-    subject: "Verify your CampusChat account",
+    subject: "Verify your G-Chat account",
     htmlContent: html,
   });
 };
@@ -139,7 +139,7 @@ export const sendEmail = async ({ to, subject, bodyHtml }) => {
     : env.EMAIL_FROM;
 
   await getBrevo().transactionalEmails.sendTransacEmail({
-    sender: { email: senderEmail, name: "CampusChat" },
+    sender: { email: senderEmail, name: "G-Chat" },
     to: [{ email: to }],
     subject,
     htmlContent: html,

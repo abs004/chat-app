@@ -264,7 +264,7 @@ export const handleReport = async (req, res, next) => {
 
     sendEmail({
       to: env.ADMIN_EMAIL,
-      subject: "New Report Submitted — CampusChat",
+      subject: "New Report Submitted — G-Chat",
       bodyHtml: emailBody,
     })
       .catch(err => console.error("[Report] Failed to send admin email:", err.message));

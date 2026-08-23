@@ -105,7 +105,10 @@ export default function ChatLanding() {
                 stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <span className="text-white font-semibold text-lg tracking-tight">G-Chat</span>
+          <div className="flex flex-col">
+            <span className="text-white font-semibold text-lg tracking-tight leading-tight">G-Chat</span>
+            <span className="text-[#6B7280] text-xs font-normal tracking-normal">GEC Chat</span>
+          </div>
         </div>
 
 
