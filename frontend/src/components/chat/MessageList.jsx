@@ -5,7 +5,7 @@ import { getAvatarUrl } from "../../utils/avatarUtils.js";
 /**
  * Scrollable message list with typing indicator.
  */
-const MessageList = ({ messages, userId, isActive, isTyping }) => {
+const MessageList = ({ messages, userId, isActive, isTyping, partnerAvatarSeed }) => {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -25,7 +25,12 @@ const MessageList = ({ messages, userId, isActive, isTyping }) => {
       )}
 
       {messages.map((msg) => (
-        <MessageBubble key={msg._id} message={msg} isOwn={msg.sender === userId} />
+        <MessageBubble
+          key={msg._id}
+          message={msg}
+          isOwn={msg.sender === userId}
+          partnerAvatarSeed={msg.sender !== userId ? partnerAvatarSeed : undefined}
+        />
       ))}
 
       {/* Typing indicator */}
@@ -33,7 +38,7 @@ const MessageList = ({ messages, userId, isActive, isTyping }) => {
         <div className="flex items-end gap-2">
           <img
             className="w-9 h-9 object-cover shrink-0"
-            src={getAvatarUrl("partner")}
+            src={getAvatarUrl(partnerAvatarSeed || "partner")}
             alt="stranger typing"
           />
           <div className="flex items-center gap-1 bg-white/[0.06] border border-white/[0.07] px-3.5 py-3 rounded-2xl rounded-bl-sm">

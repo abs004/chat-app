@@ -5,7 +5,7 @@ import { getAvatarUrl } from "../../utils/avatarUtils.js";
 /**
  * A single chat message bubble.
  */
-const MessageBubble = ({ message, isOwn }) => {
+const MessageBubble = ({ message, isOwn, partnerAvatarSeed }) => {
   const { avatarSeed } = useAuth();
   const formatTime = (dateStr) =>
     new Date(dateStr).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -28,7 +28,7 @@ const MessageBubble = ({ message, isOwn }) => {
     <div className="flex items-end gap-2">
       <img
         className="w-9 h-9 object-cover shrink-0"
-        src={getAvatarUrl("partner")}
+        src={getAvatarUrl(partnerAvatarSeed || "partner")}
         alt="stranger"
       />
       <div className="flex flex-col gap-1 max-w-[80%] sm:max-w-[58%]">

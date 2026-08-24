@@ -1,4 +1,5 @@
 import Conversation from "../models/Conversation.js";
+import User from "../models/User.js";
 import {
   deleteConversationMessages,
   scheduleMessageDeletion,
@@ -47,11 +48,15 @@ const registerMatchHandlers = (socket, io) => {
 
     if (conversation) {
       const roomId = conversation._id.toString();
-      // Find the partner's userId from the participants array
-      const partnerUserId = conversation.participants
+      const partnerId = conversation.participants
         .find((p) => p.toString() !== userId);
+      const partnerUser = await User.findById(partnerId).select("avatarSeed");
       socket.join(roomId);
-      socket.emit("match-found", { conversationId: conversation._id, partnerUserId });
+      socket.emit("match-found", {
+        conversationId: conversation._id,
+        partnerUserId: partnerId,
+        partnerAvatarSeed: partnerUser?.avatarSeed || "default",
+      });
       return;
     }
 
@@ -87,9 +92,23 @@ const registerMatchHandlers = (socket, io) => {
       socket.join(roomId);
       partner.socket.join(roomId);
 
-      // Emit separately so each user receives their own partner's userId
-      socket.emit("match-found", { conversationId: conversation._id, partnerUserId: partner.userId });
-      partner.socket.emit("match-found", { conversationId: conversation._id, partnerUserId: userId });
+      // Fetch both users' avatarSeed to send in the match payload
+      const [userA, userB] = await Promise.all([
+        User.findById(userId).select("avatarSeed"),
+        User.findById(partner.userId).select("avatarSeed"),
+      ]);
+
+      // Emit separately so each user receives their own partner's userId and avatar
+      socket.emit("match-found", {
+        conversationId: conversation._id,
+        partnerUserId: partner.userId,
+        partnerAvatarSeed: userB?.avatarSeed || "default",
+      });
+      partner.socket.emit("match-found", {
+        conversationId: conversation._id,
+        partnerUserId: userId,
+        partnerAvatarSeed: userA?.avatarSeed || "default",
+      });
     } else {
       waitingQueue.push({ userId, socket });
       socket.emit("waiting", { message: "Looking for a match..." });

@@ -165,7 +165,7 @@ export default function Chat() {
   const {
     messages, input, setInput, handleInputChange,
     isMatching, isActive, isTyping,
-    userId, partnerUserId, conversationId, sendMessage, handleEnd, handleNext, handleKeyDown,
+    userId, partnerUserId, partnerAvatarSeed, conversationId, sendMessage, handleEnd, handleNext, handleKeyDown,
     isBlocking, confirmBlocker, cancelBlocker,
   } = useChat();
 
@@ -259,7 +259,7 @@ export default function Chat() {
           {isActive ? "Connected to a stranger" : "Partner disconnected"}
         </div>
 
-        <MessageList messages={messages} userId={userId} isActive={isActive} isTyping={isTyping} />
+        <MessageList messages={messages} userId={userId} isActive={isActive} isTyping={isTyping} partnerAvatarSeed={partnerAvatarSeed} />
 
         {/* Typing Indicator */}
         <div className="px-3 sm:px-6 pb-2 min-h-[32px] flex items-center">

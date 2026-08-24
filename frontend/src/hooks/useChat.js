@@ -17,6 +17,7 @@ const useChat = () => {
   const [input, setInput] = useState("");
   const [conversationId, setConversationId] = useState(null);
   const [partnerUserId, setPartnerUserId] = useState(null);
+  const [partnerAvatarSeed, setPartnerAvatarSeed] = useState(null);
   // Ref so event handlers / beforeunload / blocker always read the latest
   // conversationId without stale closures.
   const conversationIdRef = useRef(null);
@@ -57,9 +58,10 @@ const useChat = () => {
     const socket = socketRef.current;
     if (!socket) return;
 
-    const onMatchFound = ({ conversationId: convId, partnerUserId: pid }) => {
+    const onMatchFound = ({ conversationId: convId, partnerUserId: pid, partnerAvatarSeed: pas }) => {
       setConversationId(convId);
       setPartnerUserId(pid);
+      setPartnerAvatarSeed(pas || null);
       conversationIdRef.current = convId;   // keep ref in sync
       setIsMatching(false);
       isMatchingRef.current = false;
@@ -201,6 +203,7 @@ const useChat = () => {
   const handleEnd = useCallback(() => {
     emitLeaveChat(conversationIdRef.current);
     setPartnerUserId(null);
+    setPartnerAvatarSeed(null);
     navigate("/chat-landing");
   }, [emitLeaveChat, navigate]);
 
@@ -208,6 +211,7 @@ const useChat = () => {
     emitLeaveChat(conversationIdRef.current);
     setConversationId(null);
     setPartnerUserId(null);
+    setPartnerAvatarSeed(null);
     setIsMatching(true);
     isMatchingRef.current = true;
     setMessages([]);
@@ -236,6 +240,7 @@ const useChat = () => {
     isTyping,
     userId,
     partnerUserId,
+    partnerAvatarSeed,
     handleInputChange,
     sendMessage,
     handleEnd,
