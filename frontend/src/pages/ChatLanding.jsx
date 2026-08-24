@@ -130,7 +130,7 @@ export default function ChatLanding() {
             <img 
               src={getAvatarUrl(avatarSeed)} 
               alt="Avatar" 
-              className="w-5 h-5 rounded-full border border-white/20"
+              className="w-5 h-5 object-cover"
             />
             <span className="hidden sm:inline">Settings</span>
           </button>
