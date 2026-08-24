@@ -1,4 +1,5 @@
 import { useAuth } from "../../context/AuthContext.jsx";
+import { getAvatarUrl } from "../../utils/avatarUtils.js";
 
 /**
  * Sidebar for the chat page.
@@ -26,7 +27,7 @@ const ChatSidebar = ({ userId, onReportClick, canReport }) => {
     <div className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-2.5 mt-1">
       <img
         className="w-9 h-9 rounded-full object-cover border-2 border-emerald-500/40 shrink-0"
-        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed || userId || "alex"}`}
+        src={getAvatarUrl(avatarSeed || userId)}
         alt="Your avatar"
       />
       <div>

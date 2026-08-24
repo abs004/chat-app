@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { getAvatarUrl } from "../utils/avatarUtils.js";
 
 
 function AmbientDots() {
@@ -127,7 +128,7 @@ export default function ChatLanding() {
             className="flex items-center gap-2 text-sm text-[#9CA3AF] hover:text-white transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer border-0 bg-transparent"
           >
             <img 
-              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed || "default"}`} 
+              src={getAvatarUrl(avatarSeed)} 
               alt="Avatar" 
               className="w-5 h-5 rounded-full border border-white/20"
             />

@@ -1,4 +1,5 @@
 import { useAuth } from "../../context/AuthContext.jsx";
+import { getAvatarUrl } from "../../utils/avatarUtils.js";
 
 /**
  * A single chat message bubble.
@@ -12,7 +13,7 @@ const MessageBubble = ({ message, isOwn }) => {
     <div className="flex items-end gap-2 flex-row-reverse">
       <img
         className="w-7 h-7 rounded-full object-cover shrink-0 border border-white/10"
-        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed || message.sender}`}
+        src={getAvatarUrl(avatarSeed || message.sender)}
         alt="me"
       />
       <div className="flex flex-col gap-1 max-w-[80%] sm:max-w-[58%] items-end">
@@ -26,7 +27,7 @@ const MessageBubble = ({ message, isOwn }) => {
     <div className="flex items-end gap-2">
       <img
         className="w-7 h-7 rounded-full object-cover shrink-0 border border-white/10"
-        src="https://api.dicebear.com/7.x/avataaars/svg?seed=partner"
+        src={getAvatarUrl("partner")}
         alt="stranger"
       />
       <div className="flex flex-col gap-1 max-w-[80%] sm:max-w-[58%]">
