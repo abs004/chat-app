@@ -12,7 +12,7 @@ const MessageBubble = ({ message, isOwn }) => {
   return isOwn ? (
     <div className="flex items-end gap-2 flex-row-reverse">
       <img
-        className="w-7 h-7 rounded-full object-cover shrink-0 border border-white/10"
+        className="w-9 h-9 object-cover shrink-0"
         src={getAvatarUrl(avatarSeed || message.sender)}
         alt="me"
       />
@@ -26,7 +26,7 @@ const MessageBubble = ({ message, isOwn }) => {
   ) : (
     <div className="flex items-end gap-2">
       <img
-        className="w-7 h-7 rounded-full object-cover shrink-0 border border-white/10"
+        className="w-9 h-9 object-cover shrink-0"
         src={getAvatarUrl("partner")}
         alt="stranger"
       />
