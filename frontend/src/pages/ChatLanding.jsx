@@ -1,7 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
+
 function AmbientDots() {
+
+  const { logout, isAdmin } = useAuth();
+
   const dots = [
     { cx: "8%", cy: "15%", r: 3, delay: 0, dur: 5 },
     { cx: "88%", cy: "12%", r: 2, delay: 1.5, dur: 4.5 },
@@ -97,6 +101,17 @@ export default function ChatLanding() {
       <AmbientDots />
 
       {/* Header */}
+
+      {isAdmin && (
+
+        <a href="/admin"
+          className="text-xs font-semibold text-emerald-400 border border-emerald-500/30 rounded-lg px-3 py-1.5 hover:bg-emerald-500/10 transition-colors duration-150"
+        >
+          Admin Dashboard
+        </a>
+      )
+      }
+
       <header className="relative z-10 flex items-center justify-between px-8 py-5 border-b border-white/5">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
