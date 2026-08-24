@@ -4,9 +4,21 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { API_BASE_URL } from "../constants/config.js";
 import { getToken } from "../utils/token.js"
 
-const AVATAR_SEEDS = [
-  "felix", "luna", "zara", "kai", "nova", "echo",
-  "rio", "sage", "pixel", "blaze", "aurora", "storm"
+const SECTIONS = [
+  {
+    symbol: "♂",
+    seeds: [
+      "felix", "kai", "rio", "blaze", "storm", "pixel",
+      "echo", "rex", "axel", "zed", "thor", "max"
+    ]
+  },
+  {
+    symbol: "♀",
+    seeds: [
+      "luna", "zara", "nova", "sage", "aurora", "ivy",
+      "maya", "stella", "cleo", "aria", "skye", "jade"
+    ]
+  }
 ];
 
 function Toast({ message, type }) {
@@ -85,56 +97,61 @@ export default function Settings() {
         <section>
           <h2 className="text-sm font-semibold text-white mb-4">Choose your avatar</h2>
 
-          <div className="bg-[#111418] border border-white/[0.07] rounded-2xl p-6">
-            <div className="grid grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
-              {AVATAR_SEEDS.map((seed) => {
-                const isSelected = seed === avatarSeed;
-                const isLoading = seed === loadingSeed;
+          <div className="bg-[#111418] border border-white/[0.07] rounded-2xl p-6 flex flex-col gap-8">
+            {SECTIONS.map((section) => (
+              <div key={section.symbol}>
+                <p className="text-sm font-semibold text-[#6B7280] mb-3">{section.symbol}</p>
+                <div className="grid grid-cols-4 md:grid-cols-6 gap-4 md:gap-6">
+                  {section.seeds.map((seed) => {
+                    const isSelected = seed === avatarSeed;
+                    const isLoading = seed === loadingSeed;
 
-                return (
-                  <button
-                    key={seed}
-                    onClick={() => handleSelectAvatar(seed)}
-                    disabled={!!loadingSeed}
-                    className="relative group flex flex-col items-center gap-2 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
-                  >
-                    <div className={`relative w-20 h-20 rounded-full overflow-hidden border-2 transition-all duration-200 ${isSelected
-                        ? "border-emerald-500 scale-105 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
-                        : "border-white/[0.1] hover:border-white/[0.3] group-hover:scale-105"
-                      }`}>
-                      <img
-                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`}
-                        alt={`Avatar ${seed}`}
-                        className="w-full h-full object-cover bg-white/[0.02]"
-                      />
+                    return (
+                      <button
+                        key={seed}
+                        onClick={() => handleSelectAvatar(seed)}
+                        disabled={!!loadingSeed}
+                        className="relative group flex flex-col items-center gap-2 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                      >
+                        <div className={`relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 transition-all duration-200 ${isSelected
+                            ? "border-emerald-500 scale-105 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                            : "border-white/[0.1] hover:border-white/[0.3] group-hover:scale-105"
+                          }`}>
+                          <img
+                            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`}
+                            alt={`Avatar ${seed}`}
+                            className="w-full h-full object-cover bg-white/[0.02]"
+                          />
 
-                      {isLoading && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
-                          <svg className="animate-spin w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
+                          {isLoading && (
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
+                              <svg className="animate-spin w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                              </svg>
+                            </div>
+                          )}
+
+                          {isSelected && !isLoading && (
+                            <div className="absolute inset-0 bg-emerald-500/20 flex items-center justify-center">
+                              <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg">
+                                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
-
-                      {isSelected && !isLoading && (
-                        <div className="absolute inset-0 bg-emerald-500/20 flex items-center justify-center">
-                          <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg">
-                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <span className={`text-[0.65rem] font-medium uppercase tracking-wider transition-colors ${isSelected ? "text-emerald-400" : "text-[#6B7280] group-hover:text-white"
-                      }`}>
-                      {seed}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+                        <span className={`text-[0.6rem] font-medium uppercase tracking-wider transition-colors ${isSelected ? "text-emerald-400" : "text-[#6B7280] group-hover:text-white"
+                          }`}>
+                          {seed}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </section>
       </main>
