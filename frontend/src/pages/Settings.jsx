@@ -4,18 +4,8 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { API_BASE_URL } from "../constants/config.js";
 import { getToken } from "../utils/token.js"
 
-import { Mars, Venus } from "lucide-react";
+import { Shuffle } from "lucide-react";
 import { getAvatarUrl } from "../utils/avatarUtils.js";
-
-const MALE_SEEDS = [
-  "male_felix", "male_kai", "male_rio", "male_blaze", "male_storm", "male_pixel",
-  "male_echo", "male_rex", "male_axel", "male_zed", "male_thor", "male_max"
-];
-
-const FEMALE_SEEDS = [
-  "female_luna", "female_zara", "female_nova", "female_sage", "female_aurora", "female_ivy",
-  "female_maya", "female_stella", "female_cleo", "female_aria", "female_skye", "female_jade"
-];
 
 function Toast({ message, type }) {
   if (!message) return null;
@@ -36,19 +26,27 @@ export default function Settings() {
   const navigate = useNavigate();
   const { avatarSeed, updateAvatarSeed, authenticatedFetch } = useAuth();
 
-  const [activeTab, setActiveTab] = useState("male");
-  const [loadingSeed, setLoadingSeed] = useState(null);
+  const [previewSeed, setPreviewSeed] = useState(avatarSeed || "default");
+  const [isSaving, setIsSaving] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "" });
+  const [isSpinning, setIsSpinning] = useState(false);
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast({ message: "", type: "" }), 3000);
   };
 
-  const handleSelectAvatar = async (seed) => {
-    if (seed === avatarSeed || loadingSeed) return;
+  const handleShuffle = () => {
+    const randomSeed = Math.random().toString(36).substring(2, 10);
+    setPreviewSeed(randomSeed);
+    setIsSpinning(true);
+    setTimeout(() => setIsSpinning(false), 500);
+  };
 
-    setLoadingSeed(seed);
+  const handleSaveAvatar = async () => {
+    if (previewSeed === avatarSeed || isSaving) return;
+
+    setIsSaving(true);
     try {
       const res = await authenticatedFetch(`${API_BASE_URL}/avatar`, {
         method: "PATCH",
@@ -56,18 +54,18 @@ export default function Settings() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`,
         },
-        body: JSON.stringify({ avatarSeed: seed }),
+        body: JSON.stringify({ avatarSeed: previewSeed }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to update avatar");
 
-      updateAvatarSeed(seed);
+      updateAvatarSeed(previewSeed);
       showToast("Avatar updated!");
     } catch (err) {
       showToast(err.message, "error");
     } finally {
-      setLoadingSeed(null);
+      setIsSaving(false);
     }
   };
 
@@ -90,84 +88,54 @@ export default function Settings() {
       </header>
 
       {/* Content */}
-      <main className="flex-1 max-w-2xl w-full mx-auto p-6 md:p-8 flex flex-col gap-8">
-        <section>
-          <h2 className="text-sm font-semibold text-white mb-4">Choose your avatar</h2>
+      <main className="flex-1 max-w-xl w-full mx-auto p-6 md:p-8 flex flex-col justify-center gap-8">
+        <section className="flex flex-col items-center">
+          
+          <div className="relative w-[160px] h-[160px] rounded-full overflow-hidden ring-4 ring-emerald-500/30 shadow-[0_0_30px_rgba(16,185,129,0.15)] mb-4 bg-[#111418]">
+            <img
+              src={getAvatarUrl(previewSeed)}
+              alt="Avatar Preview"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          
+          <p className="text-sm font-medium mb-10 text-[#9CA3AF]">
+            {previewSeed === avatarSeed ? "Your current avatar" : "Preview"}
+          </p>
 
-          <div className="flex items-center gap-4 mb-4 border-b border-white/[0.06]">
+          <div className="w-full max-w-xs flex flex-col gap-3">
             <button
-              onClick={() => setActiveTab("male")}
-              className={`flex items-center gap-2 pb-3 px-1 text-sm font-semibold transition-colors border-b-2 bg-transparent cursor-pointer ${
-                activeTab === "male"
-                  ? "border-[#60A5FA] text-white"
-                  : "border-transparent text-[#6B7280] hover:text-[#9CA3AF]"
-              }`}
+              onClick={handleShuffle}
+              className="flex items-center justify-center gap-2 bg-[#111418] border border-white/10 hover:bg-white/[0.05] text-white font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 cursor-pointer"
             >
-              <Mars size={16} color="#60A5FA" />
-              Male
+              <Shuffle size={18} className={isSpinning ? "animate-spin" : ""} />
+              Shuffle
             </button>
+            
             <button
-              onClick={() => setActiveTab("female")}
-              className={`flex items-center gap-2 pb-3 px-1 text-sm font-semibold transition-colors border-b-2 bg-transparent cursor-pointer ${
-                activeTab === "female"
-                  ? "border-[#F472B6] text-white"
-                  : "border-transparent text-[#6B7280] hover:text-[#9CA3AF]"
-              }`}
+              onClick={handleSaveAvatar}
+              disabled={previewSeed === avatarSeed || isSaving}
+              className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:hover:bg-emerald-500 disabled:cursor-not-allowed text-white font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 cursor-pointer border-none shadow-[0_4px_14px_rgba(16,185,129,0.25)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.35)] disabled:shadow-none"
             >
-              <Venus size={16} color="#F472B6" />
-              Female
+              {isSaving ? (
+                <>
+                  <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Saving...
+                </>
+              ) : toast.message === "Avatar updated!" ? (
+                "Saved!"
+              ) : (
+                "Save Avatar"
+              )}
             </button>
           </div>
-
-          <div className="bg-[#111418] rounded-2xl p-5">
-            <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
-              {(activeTab === "male" ? MALE_SEEDS : FEMALE_SEEDS).map((seed) => {
-                const isSelected = seed === avatarSeed;
-                const isLoading = seed === loadingSeed;
-
-                return (
-                  <button
-                    key={seed}
-                    onClick={() => handleSelectAvatar(seed)}
-                    disabled={!!loadingSeed}
-                    className="relative group flex flex-col items-center cursor-pointer bg-transparent border-none p-0 focus:outline-none"
-                  >
-                    <div className="relative">
-                      <div className={`w-[88px] h-[88px] rounded-full overflow-hidden transition-all duration-200 ${
-                        isSelected
-                          ? "ring-2 ring-emerald-500 scale-105 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
-                          : "border border-white/10 hover:ring-1 hover:ring-white/30 group-hover:scale-105"
-                        }`}
-                      >
-                        <img
-                          src={getAvatarUrl(seed)}
-                          alt={`Avatar ${seed}`}
-                          className="w-full h-full object-cover bg-white/[0.02]"
-                        />
-                        
-                        {isLoading && (
-                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
-                            <svg className="animate-spin w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {isSelected && !isLoading && (
-                        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-[#111418] shadow-sm z-10">
-                          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          
+          <p className="text-xs text-[#6B7280] mt-6 text-center">
+            Keep shuffling until you find one you like
+          </p>
         </section>
       </main>
 
