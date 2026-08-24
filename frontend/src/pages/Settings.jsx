@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { API_BASE_URL } from "../constants/config.js";
+import { getToken } from "../utils/token.js"
 
 const AVATAR_SEEDS = [
   "felix", "luna", "zara", "kai", "nova", "echo",
@@ -11,9 +12,8 @@ const AVATAR_SEEDS = [
 function Toast({ message, type }) {
   if (!message) return null;
   return (
-    <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl text-sm font-medium text-white shadow-xl flex items-center gap-2 z-50 ${
-      type === "error" ? "bg-red-500" : "bg-emerald-500"
-    }`}>
+    <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl text-sm font-medium text-white shadow-xl flex items-center gap-2 z-50 ${type === "error" ? "bg-red-500" : "bg-emerald-500"
+      }`}>
       {type === "success" && (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -27,7 +27,7 @@ function Toast({ message, type }) {
 export default function Settings() {
   const navigate = useNavigate();
   const { avatarSeed, updateAvatarSeed, authenticatedFetch } = useAuth();
-  
+
   const [loadingSeed, setLoadingSeed] = useState(null);
   const [toast, setToast] = useState({ message: "", type: "" });
 
@@ -38,18 +38,21 @@ export default function Settings() {
 
   const handleSelectAvatar = async (seed) => {
     if (seed === avatarSeed || loadingSeed) return;
-    
+
     setLoadingSeed(seed);
     try {
       const res = await authenticatedFetch(`${API_BASE_URL}/avatar`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
         body: JSON.stringify({ avatarSeed: seed }),
       });
-      
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to update avatar");
-      
+
       updateAvatarSeed(seed);
       showToast("Avatar updated!");
     } catch (err) {
@@ -81,13 +84,13 @@ export default function Settings() {
       <main className="flex-1 max-w-2xl w-full mx-auto p-6 md:p-8 flex flex-col gap-8">
         <section>
           <h2 className="text-sm font-semibold text-white mb-4">Choose your avatar</h2>
-          
+
           <div className="bg-[#111418] border border-white/[0.07] rounded-2xl p-6">
             <div className="grid grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
               {AVATAR_SEEDS.map((seed) => {
                 const isSelected = seed === avatarSeed;
                 const isLoading = seed === loadingSeed;
-                
+
                 return (
                   <button
                     key={seed}
@@ -95,17 +98,16 @@ export default function Settings() {
                     disabled={!!loadingSeed}
                     className="relative group flex flex-col items-center gap-2 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
                   >
-                    <div className={`relative w-20 h-20 rounded-full overflow-hidden border-2 transition-all duration-200 ${
-                      isSelected 
-                        ? "border-emerald-500 scale-105 shadow-[0_0_15px_rgba(16,185,129,0.3)]" 
+                    <div className={`relative w-20 h-20 rounded-full overflow-hidden border-2 transition-all duration-200 ${isSelected
+                        ? "border-emerald-500 scale-105 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                         : "border-white/[0.1] hover:border-white/[0.3] group-hover:scale-105"
-                    }`}>
-                      <img 
-                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`} 
+                      }`}>
+                      <img
+                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`}
                         alt={`Avatar ${seed}`}
                         className="w-full h-full object-cover bg-white/[0.02]"
                       />
-                      
+
                       {isLoading && (
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
                           <svg className="animate-spin w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24">
@@ -125,9 +127,8 @@ export default function Settings() {
                         </div>
                       )}
                     </div>
-                    <span className={`text-[0.65rem] font-medium uppercase tracking-wider transition-colors ${
-                      isSelected ? "text-emerald-400" : "text-[#6B7280] group-hover:text-white"
-                    }`}>
+                    <span className={`text-[0.65rem] font-medium uppercase tracking-wider transition-colors ${isSelected ? "text-emerald-400" : "text-[#6B7280] group-hover:text-white"
+                      }`}>
                       {seed}
                     </span>
                   </button>
