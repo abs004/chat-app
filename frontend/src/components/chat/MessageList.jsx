@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble.jsx";
+import { getAvatarUrl } from "../../utils/avatarUtils.js";
 
 /**
  * Scrollable message list with typing indicator.

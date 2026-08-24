@@ -1,6 +1,7 @@
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getAvatarUrl } from "../../utils/avatarUtils.js";
 
+
 /**
  * A single chat message bubble.
  */
