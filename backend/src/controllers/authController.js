@@ -79,6 +79,7 @@ export const handleLogin = async (req, res, next) => {
     if (!user.hasAcceptedTerms) {
       result.hasAcceptedTerms = false;
     }
+    result.isAdmin = user.isAdmin;
 
     // Issue a separate, longer-lived refresh token and store it in an httpOnly cookie.
     const refreshToken = jwt.sign(

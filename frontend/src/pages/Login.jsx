@@ -72,7 +72,7 @@ export default function Login() {
     setLoading(true);
     try {
       const data  = await login(email, password);
-      storeAuth(data.token);
+      storeAuth(data.token, data.isAdmin ?? false);
       
       if (data.hasAcceptedTerms === false) {
         localStorage.setItem("termsAccepted", "false");

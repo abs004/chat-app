@@ -5,6 +5,7 @@ import env from "./config/env.js";
 import authRoutes from "./routes/auth.js";
 import messageRoutes from "./routes/messages.js";
 import profileRoutes from "./routes/profile.js";
+import adminRoutes from "./routes/admin.js";
 import errorHandler from "./middleware/errorHandler.js";
 
 /**
@@ -22,7 +23,7 @@ const createApp = () => {
     cors({
       origin: env.CLIENT_ORIGIN,
       credentials: true,               // allow cookies on cross-origin requests
-      methods: ["GET", "POST", "PUT", "DELETE"],
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     })
   );
 
@@ -35,6 +36,7 @@ const createApp = () => {
   app.use("/", authRoutes);
   app.use("/messages", messageRoutes);
   app.use("/profile", profileRoutes);
+  app.use("/admin", adminRoutes);
 
   // ── 404 handler ───────────────────────────────────────────────────────────
   app.use((_req, res) => {

@@ -9,6 +9,7 @@ import Chat from "./pages/Chat.jsx";
 import VerificationPending from "./pages/VerificationPending.jsx";
 import VerifyEmail from "./pages/VerifyEmail.jsx";
 import TermsOfUse from "./pages/TermsOfUse.jsx";
+import Admin from "./pages/Admin.jsx";
 
 const RootLayout = () => (
   <AuthProvider>
@@ -17,6 +18,15 @@ const RootLayout = () => (
     </SocketProvider>
   </AuthProvider>
 );
+
+/** Guard for admin-only routes — redirects non-admins to /chat-landing. */
+const AdminRoute = ({ children }) => {
+  const { token } = useAuth();
+  if (!token) return <Navigate to="/login" replace />;
+  const isAdmin = localStorage.getItem("isAdmin") === "true";
+  if (!isAdmin) return <Navigate to="/chat-landing" replace />;
+  return children;
+};
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -57,6 +67,14 @@ const router = createBrowserRouter(
       />
 
       {/* Catch-all fallback */}
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <Admin />
+          </AdminRoute>
+        }
+      />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Route>
   )

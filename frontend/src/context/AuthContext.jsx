@@ -17,15 +17,19 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [token, setTokenState] = useState(() => getToken());
   const [userId, setUserId] = useState(() => getStoredUserId());
+  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem("isAdmin") === "true");
 
   // Ref so the refresh logic always reads the latest logout without stale closure.
   const logoutRef = useRef(null);
 
-  /** Stores the token and updates userId from its payload. */
-  const login = useCallback((newToken) => {
+  /** Stores the token, updates userId and isAdmin from the login response. */
+  const login = useCallback((newToken, adminFlag = false) => {
     setToken(newToken);
     setTokenState(newToken);
     setUserId(getStoredUserId());
+    const isAdminBool = Boolean(adminFlag);
+    localStorage.setItem("isAdmin", isAdminBool ? "true" : "false");
+    setIsAdmin(isAdminBool);
   }, []);
 
   /** Clears auth state and removes the token from storage. */
@@ -33,6 +37,9 @@ export const AuthProvider = ({ children }) => {
     removeToken();
     setTokenState(null);
     setUserId(null);
+    setIsAdmin(false);
+    localStorage.removeItem("isAdmin");
+    localStorage.removeItem("termsAccepted");
     // Best-effort: tell the server to clear the httpOnly refresh cookie.
     fetch(`${API_BASE_URL}/logout`, {
       method: "POST",
@@ -100,7 +107,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ token, userId, login, logout, authenticatedFetch: authFetch }}>
+    <AuthContext.Provider value={{ token, userId, isAdmin, login, logout, authenticatedFetch: authFetch }}>
       {children}
     </AuthContext.Provider>
   );
