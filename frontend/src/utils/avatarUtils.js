@@ -1,6 +1,6 @@
 export const getAvatarUrl = (avatarSeed) => {
   if (!avatarSeed || avatarSeed === "default") {
-    return "https://api.dicebear.com/7.x/avataaars/svg?seed=default";
+    return `https://api.dicebear.com/7.x/avataaars/svg?seed=default`;
   }
   if (avatarSeed.startsWith("female_")) {
     const seed = avatarSeed.replace("female_", "");
