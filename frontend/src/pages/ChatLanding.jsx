@@ -4,8 +4,6 @@ import { useAuth } from "../context/AuthContext.jsx";
 
 function AmbientDots() {
 
-  const { logout, isAdmin } = useAuth();
-
   const dots = [
     { cx: "8%", cy: "15%", r: 3, delay: 0, dur: 5 },
     { cx: "88%", cy: "12%", r: 2, delay: 1.5, dur: 4.5 },
@@ -86,7 +84,7 @@ const FEATURES = [
 
 export default function ChatLanding() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, isAdmin } = useAuth();
 
   const handleLogout = () => {
     logout();
