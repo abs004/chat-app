@@ -23,6 +23,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    avatarSeed: {
+      type: String,
+      default: "default",
+    },
     // ── Ban / Admin ──────────────────────────────────────────────────────────
     isBanned: {
       type: Boolean,

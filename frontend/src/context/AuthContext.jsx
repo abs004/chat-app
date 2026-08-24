@@ -18,18 +18,27 @@ export const AuthProvider = ({ children }) => {
   const [token, setTokenState] = useState(() => getToken());
   const [userId, setUserId] = useState(() => getStoredUserId());
   const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem("isAdmin") === "true");
+  const [avatarSeed, setAvatarSeed] = useState(() => localStorage.getItem("avatarSeed") || "default");
 
   // Ref so the refresh logic always reads the latest logout without stale closure.
   const logoutRef = useRef(null);
 
-  /** Stores the token, updates userId and isAdmin from the login response. */
-  const login = useCallback((newToken, adminFlag = false) => {
+  /** Stores the token, updates userId, isAdmin, and avatarSeed from the login response. */
+  const login = useCallback((newToken, adminFlag = false, seed = "default") => {
     setToken(newToken);
     setTokenState(newToken);
     setUserId(getStoredUserId());
     const isAdminBool = Boolean(adminFlag);
     localStorage.setItem("isAdmin", isAdminBool ? "true" : "false");
     setIsAdmin(isAdminBool);
+    localStorage.setItem("avatarSeed", seed);
+    setAvatarSeed(seed);
+  }, []);
+
+  /** Updates the user's avatar seed locally. */
+  const updateAvatarSeed = useCallback((seed) => {
+    localStorage.setItem("avatarSeed", seed);
+    setAvatarSeed(seed);
   }, []);
 
   /** Clears auth state and removes the token from storage. */
@@ -38,8 +47,10 @@ export const AuthProvider = ({ children }) => {
     setTokenState(null);
     setUserId(null);
     setIsAdmin(false);
+    setAvatarSeed("default");
     localStorage.removeItem("isAdmin");
     localStorage.removeItem("termsAccepted");
+    localStorage.removeItem("avatarSeed");
     // Best-effort: tell the server to clear the httpOnly refresh cookie.
     fetch(`${API_BASE_URL}/logout`, {
       method: "POST",
@@ -107,7 +118,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ token, userId, isAdmin, login, logout, authenticatedFetch: authFetch }}>
+    <AuthContext.Provider value={{ token, userId, isAdmin, avatarSeed, login, logout, updateAvatarSeed, authenticatedFetch: authFetch }}>
       {children}
     </AuthContext.Provider>
   );

@@ -80,6 +80,7 @@ export const handleLogin = async (req, res, next) => {
       result.hasAcceptedTerms = false;
     }
     result.isAdmin = user.isAdmin;
+    result.avatarSeed = user.avatarSeed;
 
     // Issue a separate, longer-lived refresh token and store it in an httpOnly cookie.
     const refreshToken = jwt.sign(
@@ -286,6 +287,26 @@ export const handleAcceptTerms = async (req, res, next) => {
     const userId = req.user.userId;
     await User.findByIdAndUpdate(userId, { hasAcceptedTerms: true });
     return res.status(200).json({ message: "Terms accepted" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * PATCH /avatar
+ * Updates the user's avatarSeed.
+ */
+export const handleUpdateAvatar = async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
+    const { avatarSeed } = req.body;
+
+    if (!avatarSeed || typeof avatarSeed !== "string" || avatarSeed.trim() === "" || avatarSeed.length > 50) {
+      return res.status(400).json({ message: "Invalid avatarSeed provided" });
+    }
+
+    await User.findByIdAndUpdate(userId, { avatarSeed: avatarSeed.trim() });
+    return res.status(200).json({ message: "Avatar updated", avatarSeed: avatarSeed.trim() });
   } catch (err) {
     next(err);
   }

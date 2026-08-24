@@ -10,6 +10,7 @@ import VerificationPending from "./pages/VerificationPending.jsx";
 import VerifyEmail from "./pages/VerifyEmail.jsx";
 import TermsOfUse from "./pages/TermsOfUse.jsx";
 import Admin from "./pages/Admin.jsx";
+import Settings from "./pages/Settings.jsx";
 
 const RootLayout = () => (
   <AuthProvider>
@@ -62,6 +63,14 @@ const router = createBrowserRouter(
         element={
           <ProtectedRoute>
             <Chat />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
           </ProtectedRoute>
         }
       />

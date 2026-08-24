@@ -1,7 +1,12 @@
+import { useAuth } from "../../context/AuthContext.jsx";
+
 /**
  * Sidebar for the chat page.
  */
-const ChatSidebar = ({ userId, onReportClick, canReport }) => (
+const ChatSidebar = ({ userId, onReportClick, canReport }) => {
+  const { avatarSeed } = useAuth();
+  
+  return (
   <aside
     className="hidden md:flex w-[240px] min-w-[240px] bg-[#111418] border-r border-white/[0.06] flex-col p-5 gap-4 overflow-y-auto"
     style={{ fontFamily: "'Sora', sans-serif" }}
@@ -21,7 +26,7 @@ const ChatSidebar = ({ userId, onReportClick, canReport }) => (
     <div className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-2.5 mt-1">
       <img
         className="w-9 h-9 rounded-full object-cover border-2 border-emerald-500/40 shrink-0"
-        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userId || "alex"}`}
+        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed || userId || "alex"}`}
         alt="Your avatar"
       />
       <div>
@@ -76,6 +81,7 @@ const ChatSidebar = ({ userId, onReportClick, canReport }) => (
       </button>
     </div>
   </aside>
-);
+  );
+};
 
 export default ChatSidebar;
