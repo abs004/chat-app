@@ -90,15 +90,15 @@ export default function Settings() {
       {/* Content */}
       <main className="flex-1 max-w-xl w-full mx-auto p-6 md:p-8 flex flex-col justify-center gap-8">
         <section className="flex flex-col items-center">
-          
-          <div className="relative w-[160px] h-[160px] rounded-full overflow-hidden ring-4 ring-emerald-500/30 shadow-[0_0_30px_rgba(16,185,129,0.15)] mb-4 bg-[#111418]">
+
+          <div className="relative w-[160px] h-[160px] mb-4">
             <img
               src={getAvatarUrl(previewSeed)}
               alt="Avatar Preview"
               className="w-full h-full object-cover"
             />
           </div>
-          
+
           <p className="text-sm font-medium mb-10 text-[#9CA3AF]">
             {previewSeed === avatarSeed ? "Your current avatar" : "Preview"}
           </p>
@@ -111,7 +111,7 @@ export default function Settings() {
               <Shuffle size={18} className={isSpinning ? "animate-spin" : ""} />
               Shuffle
             </button>
-            
+
             <button
               onClick={handleSaveAvatar}
               disabled={previewSeed === avatarSeed || isSaving}
@@ -132,7 +132,7 @@ export default function Settings() {
               )}
             </button>
           </div>
-          
+
           <p className="text-xs text-[#6B7280] mt-6 text-center">
             Keep shuffling until you find one you like
           </p>

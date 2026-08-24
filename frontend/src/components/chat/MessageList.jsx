@@ -31,8 +31,8 @@ const MessageList = ({ messages, userId, isActive, isTyping }) => {
       {isTyping && isActive && (
         <div className="flex items-end gap-2">
           <img
-            className="w-7 h-7 rounded-full object-cover shrink-0 border border-white/10"
-            src="https://api.dicebear.com/7.x/avataaars/svg?seed=partner"
+            className="w-9 h-9 object-cover shrink-0"
+            src={getAvatarUrl("partner")}
             alt="stranger typing"
           />
           <div className="flex items-center gap-1 bg-white/[0.06] border border-white/[0.07] px-3.5 py-3 rounded-2xl rounded-bl-sm">
