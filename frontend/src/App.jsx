@@ -1,5 +1,5 @@
 import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Navigate, Outlet } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext.jsx";
+import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 import { SocketProvider } from "./context/SocketContext.jsx";
 import ProtectedRoute from "./components/common/ProtectedRoute.jsx";
 import Login from "./pages/Login.jsx";
