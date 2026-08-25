@@ -11,6 +11,8 @@ import VerifyEmail from "./pages/VerifyEmail.jsx";
 import TermsOfUse from "./pages/TermsOfUse.jsx";
 import Admin from "./pages/Admin.jsx";
 import Settings from "./pages/Settings.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
 
 const RootLayout = () => (
   <AuthProvider>
@@ -38,6 +40,8 @@ const router = createBrowserRouter(
       {/* Public routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/verify-pending" element={<VerificationPending />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
 

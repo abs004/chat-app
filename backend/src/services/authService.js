@@ -2,7 +2,8 @@ import crypto from "crypto";
 import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import { signToken } from "../utils/token.js";
-import { sendVerificationEmail } from "./emailService.js";
+import { sendVerificationEmail, sendPasswordResetEmail } from "./emailService.js";
+import env from "../config/env.js";
 
 const SALT_ROUNDS = 10;
 const TOKEN_EXPIRY_HOURS = 24;
@@ -157,4 +158,70 @@ export const resendVerification = async (email) => {
   });
 
   return GENERIC_RESPONSE;
+};
+
+/**
+ * Sends a password reset link to the given email.
+ * Always returns a generic message to prevent email enumeration.
+ * @param {string} email
+ * @returns {{ message: string }}
+ */
+export const forgotPassword = async (email) => {
+  const GENERIC_RESPONSE = {
+    message: "If that email exists, a reset link has been sent.",
+  };
+
+  const user = await User.findOne({ email });
+  // Silently ignore unknown emails to prevent enumeration
+  if (!user) return GENERIC_RESPONSE;
+
+  const rawToken = crypto.randomBytes(32).toString("hex");
+  const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+  user.passwordResetToken = hashedToken;
+  user.passwordResetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+  await user.save();
+
+  const resetUrl = `${env.APP_URL}/reset-password?token=${rawToken}`;
+
+  // Fire-and-forget — don't block the response on email delivery
+  sendPasswordResetEmail(email, resetUrl).catch((err) => {
+    console.error("[emailService] Failed to send password reset email:", err.message);
+  });
+
+  return GENERIC_RESPONSE;
+};
+
+/**
+ * Resets a user's password using the raw token from the reset link.
+ * @param {string} rawToken - raw hex token from URL query param
+ * @param {string} newPassword
+ * @returns {{ message: string }}
+ */
+export const resetPassword = async (rawToken, newPassword) => {
+  const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: new Date() },
+  });
+
+  if (!user) {
+    const err = new Error("Reset link is invalid or has expired");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (!newPassword || newPassword.length < 8) {
+    const err = new Error("Password must be at least 8 characters");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  user.password = await bcrypt.hash(newPassword, SALT_ROUNDS);
+  user.passwordResetToken = null;
+  user.passwordResetExpires = null;
+  await user.save();
+
+  return { message: "Password reset successfully. You can now log in." };
 };

@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { signup, login, verifyEmail, resendVerification } from "../services/authService.js";
+import { signup, login, verifyEmail, resendVerification, forgotPassword, resetPassword } from "../services/authService.js";
 import { sendSuccess } from "../utils/response.js";
 import env from "../config/env.js";
 import Report from "../models/Report.js";
@@ -307,6 +307,41 @@ export const handleUpdateAvatar = async (req, res, next) => {
 
     await User.findByIdAndUpdate(userId, { avatarSeed: avatarSeed.trim() });
     return res.status(200).json({ message: "Avatar updated", avatarSeed: avatarSeed.trim() });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * POST /forgot-password
+ * Sends a reset link to the given email. Always returns a generic
+ * message regardless of whether the email exists.
+ */
+export const handleForgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+    const result = await forgotPassword(email);
+    return sendSuccess(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * POST /reset-password
+ * Validates the reset token and updates the user's password.
+ */
+export const handleResetPassword = async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) {
+      return res.status(400).json({ success: false, message: "Token and password are required" });
+    }
+    const result = await resetPassword(token, password);
+    return sendSuccess(res, result);
   } catch (err) {
     next(err);
   }

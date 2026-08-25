@@ -76,3 +76,23 @@ export const resendVerification = (email) =>
     body: JSON.stringify({ email }),
   });
 
+/**
+ * Sends a password reset link to the given email address.
+ * @param {string} email
+ */
+export const forgotPassword = (email) =>
+  request("/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+
+/**
+ * Resets the user's password using the token from the email link.
+ * @param {string} token - raw token from URL query param
+ * @param {string} newPassword
+ */
+export const resetPassword = (token, newPassword) =>
+  request("/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ token, password: newPassword }),
+  });

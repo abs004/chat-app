@@ -125,6 +125,53 @@ export const sendResendVerificationEmail = (to, token) =>
   sendVerificationEmail(to, token);
 
 /**
+ * Sends a password reset email.
+ * @param {string} to - recipient email address
+ * @param {string} resetUrl - the full reset link with raw token
+ */
+export const sendPasswordResetEmail = async (to, resetUrl) => {
+  const html = buildEmailHtml(`
+    <h1 style="color:#f9fafb;font-size:24px;font-weight:700;margin:0 0 12px;">
+      Reset your password
+    </h1>
+    <p style="color:#9ca3af;font-size:15px;line-height:1.6;margin:0 0 8px;">
+      You requested a password reset for your G-Chat account
+      (<strong style="color:#10b981;">${to}</strong>).
+    </p>
+    <p style="color:#9ca3af;font-size:15px;line-height:1.6;margin:0 0 28px;">
+      Click the button below to set a new password.
+      This link expires in <strong style="color:#f9fafb;">15 minutes</strong>.
+      If you didn't request this, you can safely ignore this email.
+    </p>
+    <table cellpadding="0" cellspacing="0">
+      <tr>
+        <td style="border-radius:12px;background:#10b981;">
+          <a href="${resetUrl}"
+            style="display:inline-block;padding:14px 32px;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:12px;">
+            Reset Password
+          </a>
+        </td>
+      </tr>
+    </table>
+    <p style="color:#6b7280;font-size:13px;margin:24px 0 0;line-height:1.6;">
+      If the button doesn't work, paste this link into your browser:<br/>
+      <a href="${resetUrl}" style="color:#10b981;word-break:break-all;">${resetUrl}</a>
+    </p>
+  `);
+
+  const senderEmail = env.EMAIL_FROM.includes("<")
+    ? env.EMAIL_FROM.match(/<(.+)>/)[1]
+    : env.EMAIL_FROM;
+
+  await getBrevo().transactionalEmails.sendTransacEmail({
+    sender: { email: senderEmail, name: "G-Chat" },
+    to: [{ email: to }],
+    subject: "Reset your G-Chat password",
+    htmlContent: html,
+  });
+};
+
+/**
  * Generic email sender for internal notifications using the shared HTML template.
  * @param {Object} params
  * @param {string} params.to - recipient email address

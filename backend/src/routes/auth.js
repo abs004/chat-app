@@ -10,6 +10,8 @@ import {
   handleReport,
   handleAcceptTerms,
   handleUpdateAvatar,
+  handleForgotPassword,
+  handleResetPassword,
 } from "../controllers/authController.js";
 import authenticateToken from "../middleware/auth.js";
 
@@ -42,5 +44,7 @@ router.post("/resend-verification", handleResendVerification);
 router.post("/report", authenticateToken, handleReport);
 router.post("/accept-terms", authenticateToken, handleAcceptTerms);
 router.patch("/avatar", authenticateToken, handleUpdateAvatar);
+router.post("/forgot-password", handleForgotPassword);
+router.post("/reset-password", handleResetPassword);
 
 export default router;
