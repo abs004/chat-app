@@ -52,12 +52,12 @@ function ReportModal({ onCancel, onSubmit, isLoading, error, success }) {
               onChange={(e) => setReason(e.target.value)}
               className="bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-white outline-none focus:border-emerald-500/50"
             >
-              <option value="" disabled>Select a reason...</option>
-              <option value="harassment">Harassment</option>
-              <option value="impersonation">Impersonation</option>
-              <option value="spam">Spam</option>
-              <option value="inappropriate">Inappropriate content</option>
-              <option value="other">Other</option>
+              <option value="" disabled className="bg-[#111418] text-white">Select a reason...</option>
+              <option value="harassment" className="bg-[#111418] text-white">Harassment</option>
+              <option value="impersonation" className="bg-[#111418] text-white">Impersonation</option>
+              <option value="spam" className="bg-[#111418] text-white">Spam</option>
+              <option value="inappropriate" className="bg-[#111418] text-white">Inappropriate content</option>
+              <option value="other" className="bg-[#111418] text-white">Other</option>
             </select>
           </div>
 
