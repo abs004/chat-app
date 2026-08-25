@@ -166,7 +166,7 @@ export default function Chat() {
     messages, input, setInput, handleInputChange,
     isMatching, isActive, isTyping,
     userId, partnerUserId, partnerAvatarSeed, conversationId, sendMessage, handleEnd, handleNext, handleKeyDown,
-    isBlocking, confirmBlocker, cancelBlocker,
+    insertEmoji, isBlocking, confirmBlocker, cancelBlocker,
   } = useChat();
 
   const { authenticatedFetch } = useAuth();
@@ -283,6 +283,7 @@ export default function Chat() {
           onEnd={handleEnd}
           onNext={handleNext}
           isActive={isActive}
+          insertEmoji={insertEmoji}
         />
       </main>
 

@@ -1,11 +1,33 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import Picker from "@emoji-mart/react";
+import data from "@emoji-mart/data";
 
 /**
- * The bottom input bar with End, message input, Send, and Skip controls.
+ * The bottom input bar with End, message input, Send, Skip, and Emoji controls.
  */
-const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, isActive }) => {
+const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, isActive, insertEmoji }) => {
   const [isConfirmingSkip, setIsConfirmingSkip] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
 
+  const pickerRef = useRef(null);
+  const emojiButtonRef = useRef(null);
+
+  // Close picker on outside click
+  useEffect(() => {
+    if (!showPicker) return;
+    const handleClick = (e) => {
+      if (
+        pickerRef.current && !pickerRef.current.contains(e.target) &&
+        emojiButtonRef.current && !emojiButtonRef.current.contains(e.target)
+      ) {
+        setShowPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showPicker]);
+
+  // Auto-reset skip confirm after 3 s
   useEffect(() => {
     let timeout;
     if (isConfirmingSkip) {
@@ -23,11 +45,63 @@ const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, 
     }
   };
 
+  const handleEmojiSelect = useCallback((emoji) => {
+    insertEmoji?.(emoji);
+    setShowPicker(false);
+  }, [insertEmoji]);
+
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+
   return (
     <div
-      className="bg-[#111418] border-t border-white/[0.06] px-3 sm:px-5 pt-3.5 pb-3 flex flex-col gap-2.5"
+      className="relative bg-[#111418] border-t border-white/[0.06] px-3 sm:px-5 pt-3.5 pb-3 flex flex-col gap-2.5"
       style={{ fontFamily: "'Sora', sans-serif" }}
     >
+      {/* Desktop picker — floats above the emoji button */}
+      {showPicker && !isMobile && (
+        <div
+          ref={pickerRef}
+          className="absolute bottom-full left-0 mb-2 z-50"
+        >
+          <Picker
+            data={data}
+            onEmojiSelect={handleEmojiSelect}
+            theme="dark"
+            set="native"
+            previewPosition="none"
+            skinTonePosition="none"
+            maxFrequentRows={2}
+            navPosition="bottom"
+          />
+        </div>
+      )}
+
+      {/* Mobile bottom-sheet picker */}
+      {showPicker && isMobile && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/50"
+            onClick={() => setShowPicker(false)}
+          />
+          <div
+            ref={pickerRef}
+            className="fixed bottom-0 left-0 right-0 z-50"
+          >
+            <Picker
+              data={data}
+              onEmojiSelect={handleEmojiSelect}
+              theme="dark"
+              set="native"
+              previewPosition="none"
+              skinTonePosition="none"
+              maxFrequentRows={2}
+              navPosition="bottom"
+            />
+          </div>
+        </>
+      )}
+
       {/* Button row */}
       <div className="flex items-center gap-2">
         {/* End */}
@@ -39,6 +113,17 @@ const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, 
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
           <span className="hidden sm:inline">End</span>
+        </button>
+
+        {/* Emoji button */}
+        <button
+          ref={emojiButtonRef}
+          onClick={() => setShowPicker((p) => !p)}
+          disabled={!isActive}
+          aria-label="Emoji"
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] text-[#9CA3AF] hover:text-white hover:bg-white/[0.08] hover:border-white/[0.14] transition-all duration-200 cursor-pointer shrink-0 disabled:opacity-30 disabled:cursor-not-allowed text-lg leading-none"
+        >
+          😊
         </button>
 
         {/* Input */}

@@ -13,6 +13,8 @@ const useChat = () => {
   const { userId, authenticatedFetch } = useAuth();
   const socketRef = useSocket();
 
+  const inputRef = useRef(null);
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [conversationId, setConversationId] = useState(null);
@@ -230,6 +232,10 @@ const useChat = () => {
     [sendMessage]
   );
 
+  const insertEmoji = useCallback((emoji) => {
+    setInput((prev) => prev + (emoji.native || ""));
+  }, []);
+
   return {
     messages,
     input,
@@ -246,6 +252,7 @@ const useChat = () => {
     handleEnd,
     handleNext,
     handleKeyDown,
+    insertEmoji,
     // Blocker state for the confirmation modal in Chat.jsx
     isBlocking: blocker.state === "blocked",
     confirmBlocker,
