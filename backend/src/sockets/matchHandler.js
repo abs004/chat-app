@@ -19,17 +19,33 @@ let waitingQueue = [];
  */
 const disconnectTimers = new Map();
 
+const TWO_MINUTES = 2 * 60 * 1000;
+
 /**
- * Keeps the last 3 recent partner IDs on a socket.
- * The raw token is pushed to the front; duplicates are removed; list capped at 3.
+ * Keeps the last 3 recent partners on a socket as { userId, timestamp } objects.
+ * Prepends the new entry, deduplicates by userId, caps at 3.
  */
 const addRecentPartner = (sock, partnerUserId) => {
   if (!sock.recentPartners) sock.recentPartners = [];
   sock.recentPartners = [
-    partnerUserId,
-    ...sock.recentPartners.filter((id) => id !== partnerUserId),
+    { userId: partnerUserId, timestamp: Date.now() },
+    ...sock.recentPartners.filter((p) => p.userId !== partnerUserId),
   ].slice(0, 3);
 };
+
+/**
+ * Returns true if the given userId was a partner within the last 2 minutes.
+ */
+const isHardAvoided = (sock, userId) => {
+  const entry = sock.recentPartners?.find((p) => p.userId === userId);
+  return entry && Date.now() - entry.timestamp < TWO_MINUTES;
+};
+
+/**
+ * Returns true if the given userId appears anywhere in the recent partners list.
+ */
+const isRecentPartner = (sock, userId) =>
+  sock.recentPartners?.some((p) => p.userId === userId);
 
 /**
  * Registers match and leave-chat socket event handlers for a connected socket.
@@ -92,14 +108,24 @@ const registerMatchHandlers = (socket, io) => {
     waitingQueue = waitingQueue.filter((u) => u.socket.connected);
 
     if (waitingQueue.length > 0) {
-      // Prefer someone not in either user's recent partners to avoid instant rematches.
-      // Fall back to the first waiting user if everyone is a recent partner.
+      // Tier 1: prefer someone not in either user's recent partners at all
       const preferred = waitingQueue.find(
         (u) =>
-          !socket.recentPartners?.includes(u.userId) &&
-          !u.socket.recentPartners?.includes(socket.userId)
+          !isRecentPartner(socket, u.userId) &&
+          !isRecentPartner(u.socket, socket.userId)
       );
-      const partner = preferred ?? waitingQueue[0];
+
+      // Tier 2: a recent partner, but outside the 2-minute hard-avoid window
+      const fallback = !preferred
+        ? waitingQueue.find(
+            (u) =>
+              !isHardAvoided(socket, u.userId) &&
+              !isHardAvoided(u.socket, socket.userId)
+          )
+        : null;
+
+      // Tier 3: anyone — only if every waiting user is within the hard-avoid window
+      const partner = preferred ?? fallback ?? waitingQueue[0];
       waitingQueue.splice(waitingQueue.indexOf(partner), 1);
 
       const conversation = new Conversation({
