@@ -124,8 +124,16 @@ const registerMatchHandlers = (socket, io) => {
           )
         : null;
 
-      // Tier 3: anyone — only if every waiting user is within the hard-avoid window
-      const partner = preferred ?? fallback ?? waitingQueue[0];
+      const partner = preferred ?? fallback;
+
+      // Strict block: if everyone in the queue is within the hard-avoid window,
+      // add self to the queue and wait for a new user or the window to expire.
+      if (!partner) {
+        waitingQueue.push({ userId, socket });
+        socket.emit("waiting", { message: "Looking for a match..." });
+        return;
+      }
+
       waitingQueue.splice(waitingQueue.indexOf(partner), 1);
 
       const conversation = new Conversation({
