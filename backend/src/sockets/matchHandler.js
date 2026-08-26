@@ -20,12 +20,26 @@ let waitingQueue = [];
 const disconnectTimers = new Map();
 
 /**
+ * Keeps the last 3 recent partner IDs on a socket.
+ * The raw token is pushed to the front; duplicates are removed; list capped at 3.
+ */
+const addRecentPartner = (sock, partnerUserId) => {
+  if (!sock.recentPartners) sock.recentPartners = [];
+  sock.recentPartners = [
+    partnerUserId,
+    ...sock.recentPartners.filter((id) => id !== partnerUserId),
+  ].slice(0, 3);
+};
+
+/**
  * Registers match and leave-chat socket event handlers for a connected socket.
  *
  * @param {import('socket.io').Socket} socket
  * @param {import('socket.io').Server} io
  */
 const registerMatchHandlers = (socket, io) => {
+  // Track recent partners in memory so we can deprioritize rematches
+  socket.recentPartners = [];
   // ── match-me ──────────────────────────────────────────────────────────────
   socket.on("match-me", async () => {
     const userId = socket.userId;
@@ -78,10 +92,15 @@ const registerMatchHandlers = (socket, io) => {
     waitingQueue = waitingQueue.filter((u) => u.socket.connected);
 
     if (waitingQueue.length > 0) {
-      // FIX: `const partner = waitingQueue.shift()` was missing here.
-      // Without it, `partner` is undefined → ReferenceError → silent async crash
-      // → shift() never runs → queued user stays forever → every new user crashes against them.
-      const partner = waitingQueue.shift();
+      // Prefer someone not in either user's recent partners to avoid instant rematches.
+      // Fall back to the first waiting user if everyone is a recent partner.
+      const preferred = waitingQueue.find(
+        (u) =>
+          !socket.recentPartners?.includes(u.userId) &&
+          !u.socket.recentPartners?.includes(socket.userId)
+      );
+      const partner = preferred ?? waitingQueue[0];
+      waitingQueue.splice(waitingQueue.indexOf(partner), 1);
 
       const conversation = new Conversation({
         participants: [userId, partner.userId],
@@ -118,8 +137,21 @@ const registerMatchHandlers = (socket, io) => {
   // ── leave-chat ────────────────────────────────────────────────────────────
   socket.on("leave-chat", async ({ conversationId } = {}) => {
     if (conversationId) {
-      await Conversation.findByIdAndUpdate(conversationId, { isActive: false });
+      const conv = await Conversation.findByIdAndUpdate(conversationId, { isActive: false }, { new: true });
       socket.to(conversationId).emit("partner-disconnected");
+
+      // Update recentPartners for both sides before leaving the room
+      if (conv) {
+        const roomId = conv._id.toString();
+        const roomSockets = await io.in(roomId).fetchSockets();
+        const partnerSocket = roomSockets.find((s) => s.userId !== socket.userId);
+        const partnerIdFromConv = conv.participants
+          .find((p) => p.toString() !== socket.userId)?.toString();
+
+        if (partnerIdFromConv) addRecentPartner(socket, partnerIdFromConv);
+        if (partnerSocket) addRecentPartner(partnerSocket, socket.userId);
+      }
+
       socket.leave(conversationId);
       // Schedule deletion after 15 min so messages are preserved if a report is filed
       scheduleMessageDeletion(conversationId);
@@ -164,6 +196,18 @@ const registerMatchHandlers = (socket, io) => {
           // Notify the partner that the user has truly left
           socket.to(roomId).emit("partner-disconnected");
           console.log(`[Socket] Closed conversation ${roomId} after grace period for ${userId}`);
+
+          // Update recentPartners for both sides
+          const partnerIdFromConv = activeConversation.participants
+            .find((p) => p.toString() !== userId)?.toString();
+          if (partnerIdFromConv) {
+            addRecentPartner(socket, partnerIdFromConv);
+            // Find the partner's live socket to update their list too
+            const allSockets = await io.fetchSockets();
+            const partnerSocket = allSockets.find((s) => s.userId === partnerIdFromConv);
+            if (partnerSocket) addRecentPartner(partnerSocket, userId);
+          }
+
           // Schedule deletion after 15 min so a report filed during the grace period
           // can still cancel deletion and preserve messages for review.
           scheduleMessageDeletion(activeConversation._id);
