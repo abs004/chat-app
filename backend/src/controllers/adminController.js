@@ -67,10 +67,17 @@ export const handleGetReportMessages = async (req, res, next) => {
     }
 
     const messages = await Message.find({ conversation: conversationId })
-      .select("content sender createdAt")
-      .sort({ createdAt: 1 });
+      .sort({ createdAt: 1 })
+      .populate("sender", "email");
 
-    return res.json(messages);
+    const formatted = messages.map(msg => ({
+      _id: msg._id,
+      content: msg.content,
+      createdAt: msg.createdAt,
+      sender: msg.sender?.email?.split("@")[0] ?? msg.sender,
+    }));
+
+    return res.json(formatted);
   } catch (err) {
     next(err);
   }
