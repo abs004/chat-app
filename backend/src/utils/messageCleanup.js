@@ -1,13 +1,8 @@
 import Message from "../models/Message.js";
 import Conversation from "../models/Conversation.js";
 
-/**
- * Deletes all messages associated with a conversation.
- * Used as the actual deletion logic by scheduleMessageDeletion,
- * and can also be called directly for immediate deletion.
- *
- * @param {string|ObjectId} conversationId
- */
+const reportedConversations = new Set();
+
 export const deleteConversationMessages = async (conversationId) => {
   if (!conversationId) return;
   try {
@@ -18,27 +13,20 @@ export const deleteConversationMessages = async (conversationId) => {
   }
 };
 
-// ── Delayed deletion ──────────────────────────────────────────────────────────
-// Keyed by conversationId.toString() → NodeJS.Timeout
-// If a report is filed within the 15-minute window, the timer can be cancelled
-// via cancelMessageDeletion() to preserve the messages for review.
 const deletionTimers = new Map();
+const DELETION_DELAY_MS = 15 * 60 * 1000;
 
-const DELETION_DELAY_MS = 15 * 60 * 1000; // 15 minutes
-
-/**
- * Schedules message deletion for a conversation after a 15-minute grace period.
- * If a timer already exists for the same conversation, it is replaced to prevent
- * duplicate timers. Also stamps deletionScheduledAt on the Conversation document.
- *
- * @param {string|ObjectId} conversationId
- */
 export const scheduleMessageDeletion = (conversationId) => {
   if (!conversationId) return;
 
   const key = conversationId.toString();
 
-  // Cancel any existing timer so we don't double-delete
+  // ✅ Skip if this conversation has been reported
+  if (reportedConversations.has(key)) {
+    console.log(`[messageCleanup] Skipping deletion for reported conversation ${key}`);
+    return;
+  }
+
   if (deletionTimers.has(key)) {
     clearTimeout(deletionTimers.get(key));
     deletionTimers.delete(key);
@@ -51,8 +39,6 @@ export const scheduleMessageDeletion = (conversationId) => {
 
   deletionTimers.set(key, timer);
 
-  // Stamp the scheduled time on the Conversation document so background jobs
-  // and the admin dashboard can see when deletion is expected.
   Conversation.findByIdAndUpdate(conversationId, {
     deletionScheduledAt: new Date(),
   }).catch((err) => {
@@ -62,13 +48,6 @@ export const scheduleMessageDeletion = (conversationId) => {
   console.log(`[messageCleanup] Deletion scheduled in 15 min for conversation ${key}`);
 };
 
-/**
- * Cancels a pending scheduled deletion, e.g. when a report is submitted
- * and messages must be preserved for review.
- *
- * @param {string|ObjectId} conversationId
- * @returns {boolean} true if a timer was found and cancelled, false otherwise
- */
 export const cancelMessageDeletion = (conversationId) => {
   if (!conversationId) return false;
 
@@ -81,4 +60,10 @@ export const cancelMessageDeletion = (conversationId) => {
 
   console.log(`[messageCleanup] Deletion cancelled for conversation ${key} (report filed)`);
   return true;
+};
+
+// ✅ Defined after cancelMessageDeletion so it can reference it
+export const markConversationReported = (conversationId) => {
+  reportedConversations.add(conversationId.toString());
+  cancelMessageDeletion(conversationId);
 };

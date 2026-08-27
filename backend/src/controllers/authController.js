@@ -7,6 +7,7 @@ import Conversation from "../models/Conversation.js";
 import { cancelMessageDeletion } from "../utils/messageCleanup.js";
 import { sendEmail } from "../services/emailService.js";
 import User from "../models/User.js";
+import { markConversationReported } from "../utils/messageCleanup.js";
 
 const ALLOWED_DOMAIN = "@gecskp.ac.in";
 
@@ -249,7 +250,7 @@ export const handleReport = async (req, res, next) => {
     await conversation.save();
 
     // Preserve messages for admin review
-    cancelMessageDeletion(conversationId);
+    markConversationReported(conversationId);
 
     // Notify admin
     const emailBody = `
