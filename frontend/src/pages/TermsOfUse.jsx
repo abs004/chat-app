@@ -27,9 +27,9 @@ export default function TermsOfUse() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to accept terms");
 
-      // Navigate to chat landing upon successful terms acceptance
+      // Navigate to avatar setup upon successful terms acceptance
       localStorage.setItem("termsAccepted", "true");
-      navigate("/chat-landing");
+      navigate("/avatar-setup");
     } catch (err) {
       setError(err.message);
     } finally {

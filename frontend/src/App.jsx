@@ -13,6 +13,7 @@ import Admin from "./pages/Admin.jsx";
 import Settings from "./pages/Settings.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
+import AvatarSetup from "./pages/AvatarSetup.jsx";
 
 const RootLayout = () => (
   <AuthProvider>
@@ -51,6 +52,14 @@ const router = createBrowserRouter(
         element={
           <ProtectedRoute requireTerms={false}>
             <TermsOfUse />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/avatar-setup"
+        element={
+          <ProtectedRoute>
+            <AvatarSetup />
           </ProtectedRoute>
         }
       />

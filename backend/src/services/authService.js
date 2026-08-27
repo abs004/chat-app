@@ -33,10 +33,12 @@ export const signup = async (email, password) => {
 
   const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
   const { token, expires } = generateVerificationToken();
+  const avatarSeed = crypto.randomBytes(8).toString("hex");
 
   const user = new User({
     email,
     password: hashedPassword,
+    avatarSeed,
     isVerified: false,
     verificationToken: token,
     verificationTokenExpires: expires,
