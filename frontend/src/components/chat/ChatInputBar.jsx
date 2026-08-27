@@ -46,9 +46,8 @@ const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, 
   };
 
   const handleEmojiSelect = useCallback((emoji) => {
-    insertEmoji?.(emoji);
-    setShowPicker(false);
-  }, [insertEmoji]);
+  insertEmoji?.(emoji);
+}, [insertEmoji]);
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
 
