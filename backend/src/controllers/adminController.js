@@ -66,7 +66,7 @@ export const handleGetReportMessages = async (req, res, next) => {
       return res.status(403).json({ message: "This conversation has not been reported" });
     }
 
-    const messages = await Message.find({ conversationId })
+    const messages = await Message.find({ conversation: conversationId })
       .select("content sender createdAt")
       .sort({ createdAt: 1 });
 
