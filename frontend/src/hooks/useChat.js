@@ -26,6 +26,7 @@ const useChat = () => {
   const [isMatching, setIsMatching] = useState(true);
   const isMatchingRef = useRef(true); // Track for reconnect handler
   const [isActive, setIsActive] = useState(true);
+  const [localEnded, setLocalEnded] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
 
@@ -204,10 +205,8 @@ const useChat = () => {
 
   const handleEnd = useCallback(() => {
     emitLeaveChat(conversationIdRef.current);
-    setPartnerUserId(null);
-    setPartnerAvatarSeed(null);
-    navigate("/chat-landing");
-  }, [emitLeaveChat, navigate]);
+    setLocalEnded(true);
+  }, [emitLeaveChat]);
 
   const handleNext = useCallback(() => {
     emitLeaveChat(conversationIdRef.current);
@@ -218,6 +217,7 @@ const useChat = () => {
     isMatchingRef.current = true;
     setMessages([]);
     setIsActive(true);
+    setLocalEnded(false);
     setIsTyping(false);
     socketRef.current?.emit("match-me");
   }, [emitLeaveChat, socketRef]);
@@ -243,6 +243,7 @@ const useChat = () => {
     conversationId,
     isMatching,
     isActive,
+    localEnded,
     isTyping,
     userId,
     partnerUserId,

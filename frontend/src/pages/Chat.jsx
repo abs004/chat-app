@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronLeft } from "lucide-react";
 import useChat from "../hooks/useChat.js";
 import MatchingScreen from "../components/chat/MatchingScreen.jsx";
 import ChatSidebar from "../components/chat/ChatSidebar.jsx";
@@ -163,14 +165,19 @@ function LeaveConfirmModal({ onConfirm, onCancel }) {
 
 export default function Chat() {
   const {
+  const {
     messages, input, setInput, handleInputChange,
-    isMatching, isActive, isTyping,
+    isMatching, isActive, localEnded, isTyping,
     userId, partnerUserId, partnerAvatarSeed, conversationId, sendMessage, handleEnd, handleNext, handleKeyDown,
     insertEmoji, isBlocking, confirmBlocker, cancelBlocker,
   } = useChat();
 
+  } = useChat();
+
+  const navigate = useNavigate();
   const { authenticatedFetch } = useAuth();
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isEndModalOpen, setIsEndModalOpen] = useState(false);
   const [reportLoading, setReportLoading] = useState(false);
   const [reportError, setReportError] = useState("");
   const [reportSuccess, setReportSuccess] = useState("");
@@ -222,9 +229,25 @@ export default function Chat() {
         }}
       />
 
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden relative">
+        {/* Desktop Back Button (absolute) */}
+        <button
+          onClick={() => navigate("/chat-landing")}
+          className="hidden md:flex absolute top-3 left-4 items-center gap-1 bg-transparent text-[#6B7280] hover:text-white border-none transition-colors duration-200 z-10 text-sm font-medium"
+        >
+          <ChevronLeft size={18} />
+          Back
+        </button>
+
         {/* Mobile top bar */}
         <div className="flex md:hidden items-center justify-between bg-[#111418] border-b border-white/[0.06] px-4 py-3">
+          <button
+            onClick={() => navigate("/chat-landing")}
+            className="flex items-center gap-1 bg-transparent text-[#6B7280] hover:text-white border-none transition-colors duration-200 text-sm font-medium"
+          >
+            <ChevronLeft size={18} />
+            Back
+          </button>
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center shrink-0">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -250,13 +273,12 @@ export default function Chat() {
           </button>
         </div>
 
-        {/* Status banner */}
-        <div className={`flex items-center justify-center gap-2 px-6 py-2.5 border-b text-xs font-semibold tracking-widest uppercase transition-colors duration-300
+        <div className={`flex items-center justify-center gap-2 px-6 py-2.5 border-b text-xs font-semibold tracking-widest uppercase transition-colors duration-300 min-h-[36px]
           ${isActive
             ? "bg-emerald-500/5 border-emerald-500/10 text-emerald-500"
             : "bg-red-500/5 border-red-500/10 text-red-400"}`}>
           <span className={`w-1.5 h-1.5 rounded-full inline-block ${isActive ? "bg-emerald-500 animate-pulse" : "bg-red-400"}`} />
-          {isActive ? "Connected to a stranger" : "Partner disconnected"}
+          {isActive ? "Connected to a stranger" : localEnded ? "You ended the chat" : "Partner disconnected"}
         </div>
 
         <MessageList messages={messages} userId={userId} isActive={isActive} isTyping={isTyping} partnerAvatarSeed={partnerAvatarSeed} />
@@ -280,16 +302,28 @@ export default function Chat() {
           onInputChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onSend={sendMessage}
-          onEnd={handleEnd}
+          onEnd={() => setIsEndModalOpen(true)}
           onNext={handleNext}
           isActive={isActive}
+          localEnded={localEnded}
           insertEmoji={insertEmoji}
         />
       </main>
 
-      {/* Blocker confirmation modal */}
+      {/* Blocker confirmation modal (for navigation via Back button) */}
       {isBlocking && (
         <LeaveConfirmModal onConfirm={confirmBlocker} onCancel={cancelBlocker} />
+      )}
+
+      {/* End button confirmation modal */}
+      {isEndModalOpen && (
+        <LeaveConfirmModal 
+          onConfirm={() => {
+            setIsEndModalOpen(false);
+            handleEnd();
+          }} 
+          onCancel={() => setIsEndModalOpen(false)} 
+        />
       )}
 
       {/* Report modal */}
