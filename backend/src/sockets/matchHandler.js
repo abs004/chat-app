@@ -75,25 +75,29 @@ const registerMatchHandlers = (socket, io) => {
     });
 
     if (existingConversation) {
+      // The conversation is still isActive in the DB — the disconnect grace
+      // period hasn't expired yet. Trust the DB as source of truth and
+      // always rejoin. We don't rely on room socket count because during a
+      // fresh page reload the reconnecting socket isn't in the room yet,
+      // which would wrongly return 0 and fall through to the "partner gone" branch.
       const roomId = existingConversation._id.toString();
-      const roomSockets = await io.in(roomId).fetchSockets();
+      const partnerId = existingConversation.participants
+        .find(p => p.toString() !== userId);
+      const partnerUser = await User.findById(partnerId).select("avatarSeed");
 
-      if (roomSockets.length > 0) {
-        // Partner still in room — rejoin
-        const partnerId = existingConversation.participants
-          .find(p => p.toString() !== userId);
-        const partnerUser = await User.findById(partnerId).select("avatarSeed");
-        socket.join(roomId);
-        return socket.emit("match-found", {
-          conversationId: existingConversation._id,
-          partnerUserId: partnerId,
-          partnerAvatarSeed: partnerUser?.avatarSeed || "default"
-        });
-      } else {
-        // Partner gone — mark inactive
-        await Conversation.findByIdAndUpdate(existingConversation._id, { isActive: false });
-        scheduleMessageDeletion(existingConversation._id);
-      }
+      socket.join(roomId);
+      socket.emit("match-found", {
+        conversationId: existingConversation._id,
+        partnerUserId: partnerId,
+        partnerAvatarSeed: partnerUser?.avatarSeed || "default",
+      });
+
+      // Also notify any partner already in the room (they may have seen
+      // "partner disconnected" and should now know they reconnected).
+      socket.to(roomId).emit("partner-reconnected");
+
+      console.log(`[Socket] ${userId} rejoined active conversation ${roomId}`);
+      return;
     }
 
     // ✅ Step 2: updateMany only runs when no valid conversation to rejoin
