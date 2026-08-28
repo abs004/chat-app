@@ -167,7 +167,7 @@ export default function Chat() {
   const {
     messages, input, setInput, handleInputChange,
     isMatching, isActive, localEnded, isTyping,
-    userId, partnerUserId, partnerAvatarSeed, conversationId, sendMessage, handleEnd, handleNext, handleKeyDown,
+    userId, partnerUserId, partnerAvatarSeed, conversationId, sendMessage, handleEnd, handleNext, handleCancelMatch, handleKeyDown,
     insertEmoji, isBlocking, confirmBlocker, cancelBlocker,
   } = useChat();
 
@@ -212,7 +212,7 @@ export default function Chat() {
     }
   };
 
-  if (isMatching) return <MatchingScreen onCancel={handleEnd} />;
+  if (isMatching) return <MatchingScreen onCancel={handleCancelMatch} />;
 
   return (
     <div className="flex h-screen bg-[#0D0F12] text-white overflow-hidden" style={{ fontFamily: "'Sora', sans-serif" }}>
@@ -271,11 +271,11 @@ export default function Chat() {
         </div>
 
         <div className={`flex items-center justify-center gap-2 px-6 py-2.5 border-b text-xs font-semibold tracking-widest uppercase transition-colors duration-300 min-h-[36px]
-          ${isActive
+          ${!localEnded && isActive
             ? "bg-emerald-500/5 border-emerald-500/10 text-emerald-500"
             : "bg-red-500/5 border-red-500/10 text-red-400"}`}>
-          <span className={`w-1.5 h-1.5 rounded-full inline-block ${isActive ? "bg-emerald-500 animate-pulse" : "bg-red-400"}`} />
-          {isActive ? "Connected to a stranger" : localEnded ? "You ended the chat" : "Partner disconnected"}
+          <span className={`w-1.5 h-1.5 rounded-full inline-block ${!localEnded && isActive ? "bg-emerald-500 animate-pulse" : "bg-red-400"}`} />
+          {localEnded ? "You ended the chat" : (isActive ? "Connected to a stranger" : "Partner disconnected")}
         </div>
 
         <MessageList messages={messages} userId={userId} isActive={isActive} isTyping={isTyping} partnerAvatarSeed={partnerAvatarSeed} />

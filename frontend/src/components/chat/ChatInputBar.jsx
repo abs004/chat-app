@@ -113,9 +113,9 @@ const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, 
         <button
           ref={emojiButtonRef}
           onClick={() => setShowPicker((p) => !p)}
-          disabled={!isActive}
+          disabled={!isActive || localEnded}
           aria-label="Emoji"
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] text-[#9CA3AF] hover:text-white hover:bg-white/[0.08] hover:border-white/[0.14] transition-all duration-200 cursor-pointer shrink-0 disabled:opacity-30 disabled:cursor-not-allowed text-lg leading-none"
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] text-[#9CA3AF] hover:text-white hover:bg-white/[0.08] hover:border-white/[0.14] transition-all duration-200 cursor-pointer shrink-0 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed text-lg leading-none"
         >
           😊
         </button>
@@ -135,7 +135,7 @@ const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, 
         {/* Send */}
         <button
           onClick={onSend}
-          disabled={!isActive}
+          disabled={!isActive || localEnded}
           aria-label="Send"
           className="w-10 h-10 bg-emerald-500 border-none rounded-xl text-white flex items-center justify-center cursor-pointer shrink-0 transition-all duration-200 hover:bg-emerald-400 hover:shadow-[0_4px_12px_rgba(16,185,129,0.4)] disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
         >

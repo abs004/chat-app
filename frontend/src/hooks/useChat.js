@@ -34,7 +34,7 @@ const useChat = () => {
   // Centralising emission here guarantees the ref is always nulled afterward
   // so duplicate emissions are impossible regardless of which code path fires.
   const emitLeaveChat = useCallback((convId) => {
-    if (!convId) return;
+    if (convId === undefined) return;
     socketRef.current?.emit("leave-chat", { conversationId: convId });
     conversationIdRef.current = null;
   }, [socketRef]);
@@ -195,7 +195,7 @@ const useChat = () => {
 
   // ── Actions ──────────────────────────────────────────────────────────────
   const sendMessage = useCallback(() => {
-    if (!input.trim() || !conversationId || !isActive) return;
+    if (!input.trim() || !conversationId || !isActive || localEnded) return;
     socketRef.current?.emit("send-message", {
       conversationId,
       content: input.trim(),
@@ -206,6 +206,13 @@ const useChat = () => {
   const handleEnd = useCallback(() => {
     emitLeaveChat(conversationIdRef.current);
     setLocalEnded(true);
+  }, [emitLeaveChat]);
+
+  const handleCancelMatch = useCallback(() => {
+    emitLeaveChat(null);
+    setIsMatching(false);
+    isMatchingRef.current = false;
+    setLocalEnded(false);
   }, [emitLeaveChat]);
 
   const handleNext = useCallback(() => {
@@ -252,6 +259,7 @@ const useChat = () => {
     sendMessage,
     handleEnd,
     handleNext,
+    handleCancelMatch,
     handleKeyDown,
     insertEmoji,
     // Blocker state for the confirmation modal in Chat.jsx
