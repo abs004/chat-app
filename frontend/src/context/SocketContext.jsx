@@ -19,23 +19,21 @@ export const SocketProvider = ({ children }) => {
   // Use a ref so socket consumers always get the current instance
   const socketRef = useRef(null);
 
-  useEffect(() => {
-    if (token) {
-      // Connect (or reuse existing connection) when authenticated
-      socketRef.current = connectSocket(token);
-      // Always sync the token on the existing socket so reconnects use the
-      // latest credentials — this covers HTTP-layer refreshes via authFetch.
-      updateSocketToken(token);
-    } else {
-      // Disconnect when logged out
-      disconnectSocket();
-      socketRef.current = null;
-    }
+// Initialize socket synchronously so children's effects
+// see socketRef.current already set on first mount/reload
+if (token && !socketRef.current) {
+  socketRef.current = connectSocket(token);
+  updateSocketToken(token);
+}
 
-    return () => {
-      // Cleanup only on full unmount (app teardown), not on token change
-    };
-  }, [token]);
+ useEffect(() => {
+  if (!token) {
+    disconnectSocket();
+    socketRef.current = null;
+  } else {
+    updateSocketToken(token);
+  }
+}, [token]);
 
   return (
     <SocketContext.Provider value={socketRef}>
