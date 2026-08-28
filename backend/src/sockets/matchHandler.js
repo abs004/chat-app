@@ -68,32 +68,35 @@ const registerMatchHandlers = (socket, io) => {
       console.log(`[Socket] Reconnect within grace period — cancelled cleanup for ${userId}`);
     }
 
-    // Check if there is an active conversation to rejoin.
-    // We trust the disconnect timer as the source of truth: if the conversation
-    // is still isActive: true, it means the grace period hasn't expired yet.
-    const conversation = await Conversation.findOne({
+    // ✅ Step 1: Check for existing active conversation FIRST
+    const existingConversation = await Conversation.findOne({
       participants: userId,
       isActive: true,
     });
 
-    if (conversation) {
-      const roomId = conversation._id.toString();
-      const partnerId = conversation.participants
-        .find((p) => p.toString() !== userId);
-      const partnerUser = await User.findById(partnerId).select("avatarSeed");
-      socket.join(roomId);
-      socket.emit("match-found", {
-        conversationId: conversation._id,
-        partnerUserId: partnerId,
-        partnerAvatarSeed: partnerUser?.avatarSeed || "default",
-      });
-      return;
+    if (existingConversation) {
+      const roomId = existingConversation._id.toString();
+      const roomSockets = await io.in(roomId).fetchSockets();
+
+      if (roomSockets.length > 0) {
+        // Partner still in room — rejoin
+        const partnerId = existingConversation.participants
+          .find(p => p.toString() !== userId);
+        const partnerUser = await User.findById(partnerId).select("avatarSeed");
+        socket.join(roomId);
+        return socket.emit("match-found", {
+          conversationId: existingConversation._id,
+          partnerUserId: partnerId,
+          partnerAvatarSeed: partnerUser?.avatarSeed || "default"
+        });
+      } else {
+        // Partner gone — mark inactive
+        await Conversation.findByIdAndUpdate(existingConversation._id, { isActive: false });
+        scheduleMessageDeletion(existingConversation._id);
+      }
     }
 
-    // Close any stale active conversations before attempting a new match.
-    // This is a safety net for cases where leave-chat was not properly emitted
-    // (e.g. a missed beforeunload, a React strict-mode double-mount, or a
-    // network blip that prevented the event from reaching the server).
+    // ✅ Step 2: updateMany only runs when no valid conversation to rejoin
     await Conversation.updateMany(
       { participants: userId, isActive: true },
       { isActive: false }
