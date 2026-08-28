@@ -68,7 +68,7 @@ const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, 
           />
           <div
             ref={pickerRef}
-            className="fixed bottom-0 left-0 right-0 z-50"
+            className="absolute bottom-full left-0 right-0 mb-2 z-50 flex justify-center"
           >
             <Picker
               data={data}
