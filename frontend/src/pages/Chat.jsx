@@ -165,13 +165,10 @@ function LeaveConfirmModal({ onConfirm, onCancel }) {
 
 export default function Chat() {
   const {
-  const {
     messages, input, setInput, handleInputChange,
     isMatching, isActive, localEnded, isTyping,
     userId, partnerUserId, partnerAvatarSeed, conversationId, sendMessage, handleEnd, handleNext, handleKeyDown,
     insertEmoji, isBlocking, confirmBlocker, cancelBlocker,
-  } = useChat();
-
   } = useChat();
 
   const navigate = useNavigate();
