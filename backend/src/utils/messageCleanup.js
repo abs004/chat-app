@@ -35,6 +35,15 @@ export const scheduleMessageDeletion = (conversationId) => {
   const timer = setTimeout(async () => {
     deletionTimers.delete(key);
     await deleteConversationMessages(conversationId);
+    try {
+      const conversation = await Conversation.findById(conversationId);
+      if (conversation && !conversation.reported) {
+        await Conversation.findByIdAndDelete(conversationId);
+        console.log(`[messageCleanup] Deleted conversation ${key}`);
+      }
+    } catch (err) {
+      console.error(`[messageCleanup] Failed to delete conversation ${key}:`, err.message);
+    }
   }, DELETION_DELAY_MS);
 
   deletionTimers.set(key, timer);
