@@ -174,7 +174,7 @@ const registerMatchHandlers = (socket, io) => {
   // ── leave-chat ────────────────────────────────────────────────────────────
   socket.on("leave-chat", async ({ conversationId } = {}) => {
     if (conversationId) {
-      const conv = await Conversation.findByIdAndUpdate(conversationId, { isActive: false }, { new: true });
+      const conv = await Conversation.findByIdAndUpdate(conversationId, { isActive: false }, { returnDocument: 'after' });
       socket.to(conversationId).emit("partner-disconnected");
 
       // Update recentPartners for both sides before leaving the room
@@ -225,7 +225,7 @@ const registerMatchHandlers = (socket, io) => {
         const activeConversation = await Conversation.findOneAndUpdate(
           { participants: userId, isActive: true },
           { isActive: false },
-          { new: true }
+          { returnDocument: 'after' }
         );
 
         if (activeConversation) {

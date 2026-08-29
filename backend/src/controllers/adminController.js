@@ -193,7 +193,7 @@ export const handleBanUser = async (req, res, next) => {
         $set: { isBanned: true, banExpiresAt },
         $push: { banHistory: { duration, bannedAt: new Date() } },
       },
-      { new: true, select: "email createdAt isVerified isBanned banExpiresAt isAdmin banHistory" }
+      { returnDocument: 'after', select: "email createdAt isVerified isBanned banExpiresAt isAdmin banHistory" }
     );
 
     return res.json(updated);
@@ -214,7 +214,7 @@ export const handleUnbanUser = async (req, res, next) => {
     const updated = await User.findByIdAndUpdate(
       userId,
       { isBanned: false, banExpiresAt: null },
-      { new: true, select: "email createdAt isVerified isBanned banExpiresAt isAdmin" }
+      { returnDocument: 'after', select: "email createdAt isVerified isBanned banExpiresAt isAdmin" }
     );
 
     if (!updated) {
