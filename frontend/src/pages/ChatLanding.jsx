@@ -5,6 +5,7 @@ import { getAvatarUrl } from "../utils/avatarUtils.js";
 import { Menu, X, User, LayoutDashboard, LogOut, MessageSquare } from "lucide-react";
 import { getToken } from "../utils/token.js";
 import { API_BASE_URL } from "../constants/config.js";
+
 function AmbientDots() {
 
   const dots = [

@@ -99,7 +99,7 @@ export const login = async (email, password) => {
     }
   }
 
-  const token = signToken({ userId: user._id });
+  const token = signToken({ userId: user._id, email: user.email });
   return { token };
 };
 
