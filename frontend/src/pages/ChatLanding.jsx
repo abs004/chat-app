@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { getAvatarUrl } from "../utils/avatarUtils.js";
-import { Menu, X, User, LayoutDashboard, LogOut } from "lucide-react";
-
+import { Menu, X, User, LayoutDashboard, LogOut, MessageSquare } from "lucide-react";
+import { getToken } from "../utils/token.js";
+import { API_BASE_URL } from "../constants/config.js";
 
 function AmbientDots() {
 
@@ -85,10 +86,103 @@ const FEATURES = [
   },
 ];
 
+// ── Feedback Modal ────────────────────────────────────────────────────────────
+
+function FeedbackModal({ authenticatedFetch, onClose }) {
+  const [comment, setComment] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!comment.trim() || loading) return;
+    setLoading(true); setError("");
+    try {
+      const res = await authenticatedFetch(`${API_BASE_URL}/feedback`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({ comment: comment.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to send feedback");
+      setSuccess(true);
+      setTimeout(() => { setSuccess(false); onClose(); }, 2000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-[#111418] border border-white/[0.08] rounded-2xl p-6 max-w-sm w-full mx-4 flex flex-col gap-4 shadow-2xl" style={{ fontFamily: "'Sora', sans-serif" }}>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-white font-semibold text-sm">Share your feedback</p>
+            <p className="text-[#6B7280] text-xs mt-0.5">Help us improve G-Chat</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-[#6B7280] hover:text-white p-1.5 rounded-lg hover:bg-white/[0.05] border-none bg-transparent cursor-pointer"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {success ? (
+          <div className="flex flex-col items-center gap-3 py-6">
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
+              <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="text-white font-semibold text-sm">Thank you for your feedback!</p>
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-col gap-1.5">
+              <textarea
+                rows={4}
+                maxLength={1000}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Tell us what you think..."
+                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-[#4B5563] resize-none outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30 transition-all"
+              />
+              <span className="text-[#4B5563] text-[0.65rem] text-right">{comment.length}/1000</span>
+            </div>
+
+            {error && <p className="text-red-400 text-xs">{error}</p>}
+
+            <button
+              onClick={handleSubmit}
+              disabled={!comment.trim() || loading}
+              className="flex items-center justify-center gap-2 w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm py-2.5 rounded-xl transition-all border-none cursor-pointer shadow-[0_4px_14px_rgba(16,185,129,0.25)]"
+            >
+              {loading ? (
+                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              ) : null}
+              {loading ? "Sending..." : "Send Feedback"}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function ChatLanding() {
   const navigate = useNavigate();
-  const { logout, isAdmin, avatarSeed } = useAuth();
+  const { logout, isAdmin, avatarSeed, authenticatedFetch } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -104,7 +198,8 @@ export default function ChatLanding() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const email = localStorage.getItem("email");
+  const token = getToken();
+  const email = token ? JSON.parse(atob(token.split('.')[1]))?.email : null;
   const username = email ? email.split("@")[0] : "Student";
 
   return (
@@ -276,6 +371,17 @@ export default function ChatLanding() {
 
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+      {/* Feedback button */}
+      <button
+        onClick={() => setFeedbackOpen(true)}
+        className="fixed bottom-5 right-5 z-30 flex items-center gap-1.5 text-[#6B7280] hover:text-white text-sm transition-colors cursor-pointer border-none bg-transparent"
+      >
+        <MessageSquare size={15} />
+        Give Feedback
+      </button>
+
+      {feedbackOpen && <FeedbackModal authenticatedFetch={authenticatedFetch} onClose={() => setFeedbackOpen(false)} />}
     </div>
   );
 }

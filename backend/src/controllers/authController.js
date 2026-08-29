@@ -8,6 +8,7 @@ import { cancelMessageDeletion } from "../utils/messageCleanup.js";
 import { sendEmail } from "../services/emailService.js";
 import User from "../models/User.js";
 import { markConversationReported } from "../utils/messageCleanup.js";
+import Feedback from "../models/Feedback.js";
 
 const ALLOWED_DOMAIN = "@gecskp.ac.in";
 
@@ -343,6 +344,25 @@ export const handleResetPassword = async (req, res, next) => {
     }
     const result = await resetPassword(token, password);
     return sendSuccess(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+/**
+ * POST /feedback
+ * Saves anonymous feedback from an authenticated user.
+ */
+export const handleSubmitFeedback = async (req, res, next) => {
+  try {
+    const { comment } = req.body;
+    if (!comment || typeof comment !== "string" || comment.trim().length === 0) {
+      return res.status(400).json({ success: false, message: "Comment is required" });
+    }
+    if (comment.trim().length > 1000) {
+      return res.status(400).json({ success: false, message: "Comment must be 1000 characters or fewer" });
+    }
+    await Feedback.create({ userId: req.user.userId, comment: comment.trim() });
+    return res.status(201).json({ success: true, message: "Thank you for your feedback!" });
   } catch (err) {
     next(err);
   }

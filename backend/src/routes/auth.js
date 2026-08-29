@@ -12,6 +12,7 @@ import {
   handleUpdateAvatar,
   handleForgotPassword,
   handleResetPassword,
+  handleSubmitFeedback,
 } from "../controllers/authController.js";
 import authenticateToken from "../middleware/auth.js";
 
@@ -46,5 +47,6 @@ router.post("/accept-terms", authenticateToken, handleAcceptTerms);
 router.patch("/avatar", authenticateToken, handleUpdateAvatar);
 router.post("/forgot-password", handleForgotPassword);
 router.post("/reset-password", handleResetPassword);
+router.post("/feedback", authenticateToken, handleSubmitFeedback);
 
 export default router;

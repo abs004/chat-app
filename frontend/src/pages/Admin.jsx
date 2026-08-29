@@ -50,6 +50,16 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
+  {
+    id: "feedback",
+    label: "Feedback",
+    icon: (
+      <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="w-4 h-4 shrink-0">
+        <path strokeLinecap="round" strokeLinejoin="round"
+          d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3-3-3z" />
+      </svg>
+    ),
+  },
 ];
 
 // ── Shared UI ─────────────────────────────────────────────────────────────────
@@ -1050,6 +1060,83 @@ function UsersTab({ authenticatedFetch }) {
   );
 }
 
+// ── Feedback tab ──────────────────────────────────────────────────────────────
+
+function FeedbackTab({ authenticatedFetch }) {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    setLoading(true); setError("");
+    try {
+      const res = await authenticatedFetch(`${API_BASE_URL}/admin/feedback`, { headers: authHeaders() });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to load feedback");
+      setItems(data);
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
+  }, [authenticatedFetch]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <div className="p-6 md:p-8 flex flex-col gap-6 max-w-3xl w-full mx-auto">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-white font-bold text-lg tracking-tight">User Feedback</h2>
+          {!loading && !error && (
+            <p className="text-[#4B5563] text-xs mt-0.5">
+              {items.length === 0 ? "No feedback yet" : `${items.length} piece${items.length !== 1 ? "s" : ""} of feedback`}
+            </p>
+          )}
+        </div>
+        <button
+          onClick={load}
+          className="flex items-center gap-1.5 text-xs text-[#6B7280] hover:text-white border border-white/[0.08] px-3 py-1.5 rounded-lg bg-transparent cursor-pointer hover:bg-white/[0.05] transition-colors"
+        >
+          <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="w-3.5 h-3.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Refresh
+        </button>
+      </div>
+
+      {loading && (
+        <div className="flex flex-col gap-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="animate-pulse bg-[#111418] border border-white/[0.07] rounded-xl p-4 flex flex-col gap-3">
+              <div className="h-3 w-28 bg-white/[0.06] rounded" />
+              <div className="h-3 w-full bg-white/[0.04] rounded" />
+              <div className="h-3 w-3/4 bg-white/[0.04] rounded" />
+              <div className="h-2.5 w-24 bg-white/[0.03] rounded" />
+            </div>
+          ))}
+        </div>
+      )}
+      {error && <ErrorCenter message={error} onRetry={load} />}
+      {!loading && !error && items.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <svg fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" className="w-10 h-10 text-[#374151]">
+            <path strokeLinecap="round" strokeLinejoin="round"
+              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3-3-3z" />
+          </svg>
+          <p className="text-[#4B5563] text-sm">No feedback yet.</p>
+        </div>
+      )}
+      {!loading && !error && items.map((item) => (
+        <div key={item._id} className="bg-[#111418] border border-white/[0.07] rounded-xl px-5 py-4 flex flex-col gap-2 hover:border-white/[0.12] transition-colors">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-white font-semibold text-sm">{item.username}</span>
+            <span className="text-[#4B5563] text-[0.65rem] shrink-0">{formatDate(item.createdAt)}</span>
+          </div>
+          <p className="text-[#9CA3AF] text-sm leading-relaxed whitespace-pre-wrap">{item.comment}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
 function AdminSidebar({ activeTab, setActiveTab, onBackToApp }) {
@@ -1134,10 +1221,11 @@ export default function Admin() {
 
   const renderTab = () => {
     switch (activeTab) {
-      case "overview": return <OverviewTab authenticatedFetch={authenticatedFetch} />;
-      case "reports":  return <ReportsTab  authenticatedFetch={authenticatedFetch} />;
-      case "users":    return <UsersTab authenticatedFetch={authenticatedFetch} />;
-      default:         return null;
+      case "overview":  return <OverviewTab authenticatedFetch={authenticatedFetch} />;
+      case "reports":   return <ReportsTab  authenticatedFetch={authenticatedFetch} />;
+      case "users":     return <UsersTab    authenticatedFetch={authenticatedFetch} />;
+      case "feedback":  return <FeedbackTab authenticatedFetch={authenticatedFetch} />;
+      default:          return null;
     }
   };
 

@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import Conversation from "../models/Conversation.js";
 import Report from "../models/Report.js";
 import Message from "../models/Message.js";
+import Feedback from "../models/Feedback.js";
 import { scheduleMessageDeletion } from "../utils/messageCleanup.js";
 
 // ── GET /admin/stats ──────────────────────────────────────────────────────────
@@ -240,6 +241,30 @@ export const handleGetUserReports = async (req, res, next) => {
       .sort({ createdAt: -1 });
 
     return res.json(reports);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── GET /admin/feedback ───────────────────────────────────────────────────────
+
+/**
+ * Returns all user feedback sorted by newest first.
+ */
+export const handleGetFeedback = async (req, res, next) => {
+  try {
+    const feedbackList = await Feedback.find()
+      .populate("userId", "email")
+      .sort({ createdAt: -1 });
+
+    const mapped = feedbackList.map((f) => ({
+      _id: f._id,
+      comment: f.comment,
+      createdAt: f.createdAt,
+      username: f.userId?.email ? f.userId.email.split("@")[0] : "Unknown",
+    }));
+
+    return res.json(mapped);
   } catch (err) {
     next(err);
   }
