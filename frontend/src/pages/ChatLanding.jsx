@@ -5,6 +5,7 @@ import { getAvatarUrl } from "../utils/avatarUtils.js";
 import { Menu, X, User, LayoutDashboard, LogOut, MessageSquare } from "lucide-react";
 import { getToken } from "../utils/token.js";
 import { API_BASE_URL } from "../constants/config.js";
+import { MessageSquare } from "lucide-react";
 
 function AmbientDots() {
 
@@ -314,6 +315,14 @@ export default function ChatLanding() {
                 </button>
               )}
 
+              <button
+                onClick={() => { setDrawerOpen(false); setFeedbackOpen(true); }}
+                className="flex items-center gap-3 w-full text-left text-sm text-[#9CA3AF] hover:text-white px-3 py-2.5 rounded-lg hover:bg-white/[0.06] transition-colors border-none bg-transparent cursor-pointer"
+              >
+                <MessageSquare size={18} />
+                Give Feedback
+              </button>
+
               <div className="border-t border-white/[0.08] my-2 w-full" />
 
               <button
@@ -375,7 +384,7 @@ export default function ChatLanding() {
       {/* Feedback button */}
       <button
         onClick={() => setFeedbackOpen(true)}
-        className="fixed bottom-5 right-5 z-30 flex items-center gap-1.5 text-[#6B7280] hover:text-white text-sm transition-colors cursor-pointer border-none bg-transparent"
+        className="hidden md:flex fixed bottom-5 right-5 z-30 flex items-center gap-1.5 text-[#6B7280] hover:text-white text-sm transition-colors cursor-pointer border-none bg-transparent"
       >
         <MessageSquare size={15} />
         Give Feedback
