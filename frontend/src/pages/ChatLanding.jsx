@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { getAvatarUrl } from "../utils/avatarUtils.js";
+import { Menu, X, Settings, LayoutDashboard, LogOut } from "lucide-react";
 
 
 function AmbientDots() {
@@ -86,11 +88,23 @@ const FEATURES = [
 export default function ChatLanding() {
   const navigate = useNavigate();
   const { logout, isAdmin, avatarSeed } = useAuth();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
+
+  // Close drawer on resize to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) setDrawerOpen(false);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const username = (localStorage.getItem("email") || "student@gecskp.ac.in").split("@")[0];
 
   return (
     <div
@@ -113,13 +127,14 @@ export default function ChatLanding() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Desktop Actions */}
+        <div className="hidden md:flex items-center gap-2">
           {isAdmin && (
-            <a href="/admin"
-              className="text-xs font-semibold text-emerald-400 border border-emerald-500/30 rounded-lg px-3 py-1.5 hover:bg-emerald-500/10 transition-colors duration-150 mr-2"
+            <button onClick={() => navigate("/admin")}
+              className="text-xs font-semibold text-emerald-400 border border-emerald-500/30 rounded-lg px-3 py-1.5 hover:bg-emerald-500/10 transition-colors duration-150 mr-2 bg-transparent cursor-pointer"
             >
               Admin Dashboard
-            </a>
+            </button>
           )}
 
           <button
@@ -132,7 +147,7 @@ export default function ChatLanding() {
               alt="Avatar" 
               className="w-5 h-5 object-cover"
             />
-            <span className="hidden sm:inline">Settings</span>
+            <span>Settings</span>
           </button>
 
           <button
@@ -140,14 +155,82 @@ export default function ChatLanding() {
             title="Logout"
             className="flex items-center gap-2 text-sm text-[#9CA3AF] hover:text-white transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer border-0 bg-transparent"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            <span className="hidden sm:inline">Logout</span>
+            <LogOut size={16} />
+            <span>Logout</span>
           </button>
         </div>
+
+        {/* Mobile Hamburger Button */}
+        <button
+          onClick={() => setDrawerOpen(true)}
+          className="flex md:hidden text-white p-2 bg-transparent border-none cursor-pointer"
+        >
+          <Menu size={24} />
+        </button>
       </header>
+
+      {/* Mobile Drawer */}
+      {drawerOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+            onClick={() => setDrawerOpen(false)}
+          />
+          <div
+            className={`fixed top-0 right-0 h-full w-64 bg-[#111418] border-l border-white/[0.08] z-50 flex flex-col p-6 md:hidden transition-transform duration-300 ${
+              drawerOpen ? "translate-x-0" : "translate-x-full"
+            }`}
+          >
+            <button
+              onClick={() => setDrawerOpen(false)}
+              className="absolute top-5 right-5 text-[#9CA3AF] hover:text-white bg-transparent border-none cursor-pointer"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex flex-col items-center mt-6">
+              <img
+                src={getAvatarUrl(avatarSeed)}
+                alt="Avatar"
+                className="w-16 h-16 object-cover mb-3"
+              />
+              <span className="text-white font-semibold text-sm">{username}</span>
+            </div>
+
+            <div className="border-t border-white/[0.08] my-4 w-full" />
+
+            <div className="flex flex-col gap-2 w-full">
+              <button
+                onClick={() => { setDrawerOpen(false); navigate("/settings"); }}
+                className="flex items-center gap-3 w-full text-left text-sm text-[#9CA3AF] hover:text-white px-3 py-2.5 rounded-lg hover:bg-white/[0.06] transition-colors border-none bg-transparent cursor-pointer"
+              >
+                <Settings size={18} />
+                Settings
+              </button>
+              
+              {isAdmin && (
+                <button
+                  onClick={() => { setDrawerOpen(false); navigate("/admin"); }}
+                  className="flex items-center gap-3 w-full text-left text-sm text-[#9CA3AF] hover:text-white px-3 py-2.5 rounded-lg hover:bg-white/[0.06] transition-colors border-none bg-transparent cursor-pointer"
+                >
+                  <LayoutDashboard size={18} />
+                  Admin Dashboard
+                </button>
+              )}
+
+              <div className="border-t border-white/[0.08] my-2 w-full" />
+
+              <button
+                onClick={() => { setDrawerOpen(false); handleLogout(); }}
+                className="flex items-center gap-3 w-full text-left text-sm text-red-400 hover:text-red-300 px-3 py-2.5 rounded-lg hover:bg-red-500/10 transition-colors border-none bg-transparent cursor-pointer"
+              >
+                <LogOut size={18} />
+                Logout
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Hero */}
       <main className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-24 pb-16">
