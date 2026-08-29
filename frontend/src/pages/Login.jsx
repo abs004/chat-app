@@ -98,16 +98,16 @@ export default function Login() {
 
           {/* Brand */}
           <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-3">
-              <img src="/logo.png" alt="G-Chat" className="h-14 w-auto" />
-              <div className="flex flex-col">
-                <span className="text-white font-semibold text-lg tracking-tight leading-tight" style={{fontFamily: "'Sora', sans-serif"}}>
-                  G-Chat
-                </span>
-                <span className="text-[#6B7280] text-xs font-normal tracking-normal" style={{fontFamily: "'Sora', sans-serif"}}>
-                  GEC Chat
-                </span>
-              </div>
+            <div className="flex items-center gap-0 mb-3">
+            <img src="/logo.png" alt="G-Chat" className="h-14 w-auto -mr-2" />
+            <div className="flex flex-col">
+             <span className="text-white font-semibold text-lg tracking-tight leading-tight" style={{fontFamily: "'Sora', sans-serif"}}>
+              G-Chat
+             </span>
+             <span className="text-[#6B7280] text-xs font-normal tracking-normal" style={{fontFamily: "'Sora', sans-serif"}}>
+               GEC Chat
+             </span>
+            </div>
             </div>
           </div>
 
