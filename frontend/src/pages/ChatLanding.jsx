@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { getAvatarUrl } from "../utils/avatarUtils.js";
-import { Menu, X, Settings, LayoutDashboard, LogOut } from "lucide-react";
+import { Menu, X, User, LayoutDashboard, LogOut } from "lucide-react";
 
 
 function AmbientDots() {
@@ -104,7 +104,7 @@ export default function ChatLanding() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const username = (localStorage.getItem("email") || "student@gecskp.ac.in").split("@")[0];
+  const username = (localStorage.getItem("email")).split("@")[0];
 
   return (
     <div
@@ -139,7 +139,7 @@ export default function ChatLanding() {
 
           <button
             onClick={() => navigate("/settings")}
-            title="Settings"
+            title="Change Avatar"
             className="flex items-center gap-2 text-sm text-[#9CA3AF] hover:text-white transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer border-0 bg-transparent"
           >
             <img 
@@ -147,7 +147,7 @@ export default function ChatLanding() {
               alt="Avatar" 
               className="w-5 h-5 object-cover"
             />
-            <span>Settings</span>
+            <span>Change Avatar</span>
           </button>
 
           <button
@@ -204,8 +204,8 @@ export default function ChatLanding() {
                 onClick={() => { setDrawerOpen(false); navigate("/settings"); }}
                 className="flex items-center gap-3 w-full text-left text-sm text-[#9CA3AF] hover:text-white px-3 py-2.5 rounded-lg hover:bg-white/[0.06] transition-colors border-none bg-transparent cursor-pointer"
               >
-                <Settings size={18} />
-                Settings
+                <User size={18} />
+                Change Avatar
               </button>
               
               {isAdmin && (

@@ -82,7 +82,7 @@ export default function Settings() {
           </svg>
         </button>
         <div>
-          <h1 className="text-white font-bold text-lg tracking-tight">Settings</h1>
+          <h1 className="text-white font-bold text-lg tracking-tight">Change Avatar</h1>
           <p className="text-[#4B5563] text-xs">Customize your profile</p>
         </div>
       </header>
