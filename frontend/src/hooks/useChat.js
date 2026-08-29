@@ -25,10 +25,12 @@ const useChat = () => {
   const conversationIdRef = useRef(null);
   const [isMatching, setIsMatching] = useState(true);
   const isMatchingRef = useRef(true); // Track for reconnect handler
+  const cancelledRef = useRef(false);
   const [isActive, setIsActive] = useState(true);
   const [localEnded, setLocalEnded] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
+
 
   // ── Helper: emit leave-chat once and clear the ref ───────────────────────
   // Centralising emission here guarantees the ref is always nulled afterward
@@ -90,9 +92,10 @@ const useChat = () => {
 
     // Re-emit match-me if the socket drops and reconnects
     const onConnect = () => {
-      // Always emit match-me on reconnect to clear any backend disconnect timers
-      // and ensure the socket is rejoined to the active conversation room.
-      socket.emit("match-me");
+      if (cancelledRef.current) return;
+      if (isMatchingRef.current || conversationIdRef.current) {
+        socket.emit("match-me");
+      }
     };
 
     socket.on("match-found", onMatchFound);
@@ -209,6 +212,7 @@ const useChat = () => {
   }, [emitLeaveChat]);
 
   const handleCancelMatch = useCallback(() => {
+    cancelledRef.current = true;
     emitLeaveChat(null);
     setIsMatching(false);
     isMatchingRef.current = false;
@@ -216,6 +220,7 @@ const useChat = () => {
   }, [emitLeaveChat]);
 
   const handleNext = useCallback(() => {
+    cancelledRef.current = false;
     emitLeaveChat(conversationIdRef.current);
     setConversationId(null);
     setPartnerUserId(null);
