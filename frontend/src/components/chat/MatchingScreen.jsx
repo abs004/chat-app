@@ -10,7 +10,7 @@ const MatchingScreen = ({ onCancel }) => (
     <div className="relative flex items-center justify-center mb-10">
       <span className="absolute w-28 h-28 rounded-full border border-emerald-500/10 animate-ping" style={{ animationDuration: "2s" }} />
       <span className="absolute w-20 h-20 rounded-full border border-emerald-500/20 animate-ping" style={{ animationDuration: "2s", animationDelay: "0.3s" }} />
-      <img src="/logo.png" alt="G-Chat" className="h-14 w-auto" />
+      <img src="/logo.png" alt="G-Chat" className="h-20 w-auto object-contain drop-shadow-[0_0_16px_rgba(16,185,129,0.6)]" />
     </div>
 
     <h2 className="text-2xl font-bold text-white mb-2">Finding someone…</h2>
