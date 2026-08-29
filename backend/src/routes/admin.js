@@ -9,6 +9,7 @@ import {
   handleGetUsers,
   handleBanUser,
   handleUnbanUser,
+  handleGetUserReports,
 } from "../controllers/adminController.js";
 
 const router = Router();
@@ -28,5 +29,6 @@ router.patch("/reports/:reportId", handleUpdateReportStatus);
 router.get("/users", handleGetUsers);
 router.patch("/users/:userId/ban", handleBanUser);
 router.patch("/users/:userId/unban", handleUnbanUser);
+router.get("/users/:userId/reports", handleGetUserReports);
 
 export default router;

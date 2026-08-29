@@ -50,6 +50,14 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    // ── Ban History ──────────────────────────────────────────────────────────
+    banHistory: [
+      {
+        duration: { type: String }, // "1d", "7d", "permanent"
+        reason: { type: String },   // optional note
+        bannedAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );

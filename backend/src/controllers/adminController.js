@@ -129,11 +129,26 @@ export const handleGetUsers = async (req, res, next) => {
       filter.email = { $regex: req.query.search, $options: "i" };
     }
 
-    const users = await User.find(filter)
-      .select("email createdAt isVerified isBanned banExpiresAt isAdmin")
-      .sort({ createdAt: -1 });
+    const [users, reportCounts] = await Promise.all([
+      User.find(filter)
+        .select("email createdAt isVerified isBanned banExpiresAt isAdmin banHistory")
+        .sort({ createdAt: -1 }),
+      Report.aggregate([
+        { $group: { _id: "$reported", count: { $sum: 1 } } },
+      ]),
+    ]);
 
-    return res.json(users);
+    // Build a fast lookup map: userId → report count
+    const countMap = new Map(
+      reportCounts.map((r) => [r._id.toString(), r.count])
+    );
+
+    const result = users.map((u) => ({
+      ...u.toObject(),
+      reportCount: countMap.get(u._id.toString()) ?? 0,
+    }));
+
+    return res.json(result);
   } catch (err) {
     next(err);
   }
@@ -173,8 +188,11 @@ export const handleBanUser = async (req, res, next) => {
 
     const updated = await User.findByIdAndUpdate(
       userId,
-      { isBanned: true, banExpiresAt },
-      { new: true, select: "email createdAt isVerified isBanned banExpiresAt isAdmin" }
+      {
+        $set: { isBanned: true, banExpiresAt },
+        $push: { banHistory: { duration, bannedAt: new Date() } },
+      },
+      { new: true, select: "email createdAt isVerified isBanned banExpiresAt isAdmin banHistory" }
     );
 
     return res.json(updated);
@@ -203,6 +221,25 @@ export const handleUnbanUser = async (req, res, next) => {
     }
 
     return res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── GET /admin/users/:userId/reports ─────────────────────────────────────────
+
+/**
+ * Returns all reports filed against a specific user.
+ */
+export const handleGetUserReports = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    const reports = await Report.find({ reported: userId })
+      .populate("reporter", "email")
+      .sort({ createdAt: -1 });
+
+    return res.json(reports);
   } catch (err) {
     next(err);
   }
