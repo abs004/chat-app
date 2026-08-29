@@ -99,7 +99,7 @@ export default function Login() {
           {/* Brand */}
           <div className="relative z-10">
             <div className="flex items-center gap-0 mb-3">
-            <img src="/logo.png" alt="G-Chat" className="h-14 w-auto -mr-2" />
+            <img src="/logo.png" alt="G-Chat" className="h-14 w-auto -mr-3" />
             <div className="flex flex-col">
              <span className="text-white font-semibold text-lg tracking-tight leading-tight" style={{fontFamily: "'Sora', sans-serif"}}>
               G-Chat
