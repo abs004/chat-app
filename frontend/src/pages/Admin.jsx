@@ -564,6 +564,101 @@ function ReportsTab({ authenticatedFetch }) {
 
 // ── Users tab ─────────────────────────────────────────────────────────────────
 
+// Flag icon SVG helper
+function FlagIcon({ className = "w-3.5 h-3.5" }) {
+  return (
+    <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round"
+        d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" />
+    </svg>
+  );
+}
+
+function formatDuration(d) {
+  if (d === "1d") return "1 Day";
+  if (d === "7d") return "1 Week";
+  if (d === "permanent") return "Permanent";
+  return d;
+}
+
+// Modal: reports filed against a user
+function UserReportsModal({ userId, authenticatedFetch, onClose }) {
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    setLoading(true); setError("");
+    try {
+      const res = await authenticatedFetch(`${API_BASE_URL}/admin/users/${userId}/reports`, { headers: authHeaders() });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to load reports");
+      setReports(data);
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
+  }, [userId, authenticatedFetch]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div className="bg-[#111418] border border-white/[0.08] rounded-2xl p-6 max-w-md w-full mx-4 flex flex-col gap-4 shadow-2xl max-h-[80vh]" style={{ fontFamily: "'Sora', sans-serif" }}>
+        <div className="flex items-center justify-between shrink-0">
+          <p className="text-white font-semibold text-sm">Reports Against User</p>
+          <button onClick={onClose} className="text-[#6B7280] hover:text-white p-1.5 rounded-lg hover:bg-white/[0.05] border-none bg-transparent cursor-pointer">
+            <svg fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+        <div className="overflow-y-auto flex flex-col gap-3" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.06) transparent" }}>
+          {loading && <LoadingCenter />}
+          {error && <ErrorCenter message={error} onRetry={load} />}
+          {!loading && !error && reports.length === 0 && (
+            <p className="text-center text-[#4B5563] text-sm py-8">No reports filed against this user.</p>
+          )}
+          {!loading && !error && reports.map((r) => (
+            <div key={r._id} className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 flex flex-col gap-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-white text-xs font-semibold capitalize">{r.reason}</span>
+                <span className="text-[#4B5563] text-[0.65rem]">{formatDate(r.createdAt)}</span>
+              </div>
+              {r.description && <p className="text-[#9CA3AF] text-xs leading-relaxed">{r.description}</p>}
+              <p className="text-[#4B5563] text-[0.65rem]">By: {r.reporter?.email ?? "unknown"}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Modal: ban history for a user
+function BanHistoryModal({ user, onClose }) {
+  const history = [...(user.banHistory ?? [])].reverse();
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div className="bg-[#111418] border border-white/[0.08] rounded-2xl p-6 max-w-md w-full mx-4 flex flex-col gap-4 shadow-2xl max-h-[80vh]" style={{ fontFamily: "'Sora', sans-serif" }}>
+        <div className="flex items-center justify-between shrink-0">
+          <p className="text-white font-semibold text-sm">Ban History</p>
+          <button onClick={onClose} className="text-[#6B7280] hover:text-white p-1.5 rounded-lg hover:bg-white/[0.05] border-none bg-transparent cursor-pointer">
+            <svg fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+        <div className="overflow-y-auto flex flex-col gap-3" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.06) transparent" }}>
+          {history.length === 0 && (
+            <p className="text-center text-[#4B5563] text-sm py-8">No previous bans.</p>
+          )}
+          {history.map((b, i) => (
+            <div key={i} className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+              <span className={`text-xs font-semibold ${b.duration === "permanent" ? "text-red-400" : "text-amber-400"}`}>{formatDuration(b.duration)}</span>
+              <span className="text-[#4B5563] text-[0.65rem]">{formatDate(b.bannedAt)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function BanActions({ user, currentUserId, onAction, loadingId }) {
   const [open, setOpen] = useState(false);
   const isSelf = user._id === currentUserId;
@@ -618,14 +713,60 @@ function BanActions({ user, currentUserId, onAction, loadingId }) {
           ))}
         </div>
       )}
+      {/* Offence helper */}
+      {(() => {
+        const count = user.banHistory?.length ?? 0;
+        if (count === 0) return <span className="text-[#4B5563] text-[0.6rem] mt-0.5">First offence</span>;
+        if (count === 1) return <span className="text-yellow-500 text-[0.6rem] mt-0.5">2nd offence</span>;
+        if (count === 2) return <span className="text-amber-400 text-[0.6rem] mt-0.5">3rd offence</span>;
+        return <span className="text-red-400 text-[0.6rem] mt-0.5">Repeat offender</span>;
+      })()}
     </div>
+  );
+}
+
+// Inline table cell: clickable report count
+function ReportCell({ user, authenticatedFetch }) {
+  const [open, setOpen] = useState(false);
+  const rc = user.reportCount ?? 0;
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className={`flex items-center gap-1 text-xs font-medium border-none bg-transparent cursor-pointer ${
+          rc === 0 ? "text-[#4B5563] cursor-default" : rc >= 3 ? "text-red-400" : "text-yellow-400"
+        }`}
+      >
+        {rc === 0 ? <span>—</span> : <><FlagIcon />{rc}</>}
+      </button>
+      {open && <UserReportsModal userId={user._id} authenticatedFetch={authenticatedFetch} onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
+// Inline table cell: clickable ban history count
+function BanHistoryCell({ user }) {
+  const [open, setOpen] = useState(false);
+  const count = user.banHistory?.length ?? 0;
+  return (
+    <>
+      <button
+        onClick={() => count > 0 && setOpen(true)}
+        className={`flex items-center gap-1 text-xs font-medium border-none bg-transparent ${
+          count === 0 ? "text-[#4B5563] cursor-default" : "text-amber-400 cursor-pointer"
+        }`}
+      >
+        {count === 0 ? "—" : `${count} ban${count > 1 ? "s" : ""}`}
+      </button>
+      {open && <BanHistoryModal user={user} onClose={() => setOpen(false)} />}
+    </>
   );
 }
 
 function UserRowSkeleton() {
   return (
     <tr className="animate-pulse border-b border-white/[0.05]">
-      {["w-48", "w-24", "w-10", "w-20", "w-16"].map((w, i) => (
+      {["w-48", "w-24", "w-10", "w-20", "w-12", "w-16", "w-16"].map((w, i) => (
         <td key={i} className="px-4 py-3.5">
           <div className={`h-3.5 ${w} bg-white/[0.06] rounded`} />
         </td>
@@ -651,37 +792,72 @@ function UserStatusBadge({ user }) {
 }
 
 // Mobile card for a single user
-function UserCard({ user, currentUserId, onAction, loadingId }) {
+function UserCard({ user, currentUserId, onAction, loadingId, authenticatedFetch }) {
+  const [reportsOpen, setReportsOpen] = useState(false);
+  const [banHistOpen, setBanHistOpen] = useState(false);
+  const rc = user.reportCount ?? 0;
+  const banCount = user.banHistory?.length ?? 0;
+
   return (
-    <div className="bg-[#111418] border border-white/[0.07] rounded-xl p-4 flex flex-col gap-3">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex flex-col gap-0.5 min-w-0">
-          <p className="text-white text-sm font-medium truncate">{user.email}</p>
-          <p className="text-[#4B5563] text-xs">
-            Joined {new Date(user.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
-          </p>
+    <>
+      <div className="bg-[#111418] border border-white/[0.07] rounded-xl p-4 flex flex-col gap-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex flex-col gap-0.5 min-w-0">
+            <p className="text-white text-sm font-medium truncate">{user.email}</p>
+            <p className="text-[#4B5563] text-xs">
+              Joined {new Date(user.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {user.isVerified ? (
+              <span className="flex items-center gap-1 text-emerald-400 text-xs font-medium">
+                <svg fill="currentColor" viewBox="0 0 20 20" className="w-3.5 h-3.5">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Verified
+              </span>
+            ) : (
+              <span className="text-[#6B7280] text-xs">Unverified</span>
+            )}
+            {user.isAdmin && (
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Admin</span>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          {user.isVerified ? (
-            <span className="flex items-center gap-1 text-emerald-400 text-xs font-medium">
-              <svg fill="currentColor" viewBox="0 0 20 20" className="w-3.5 h-3.5">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+
+        {/* Report & ban count badges */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setReportsOpen(true)}
+            className={`flex items-center gap-1 text-xs font-medium border-none bg-transparent cursor-pointer ${
+              rc === 0 ? "text-[#4B5563]" : rc >= 3 ? "text-red-400" : "text-yellow-400"
+            }`}
+          >
+            <FlagIcon />
+            {rc === 0 ? "No reports" : `${rc} report${rc > 1 ? "s" : ""}`}
+          </button>
+          {banCount > 0 && (
+            <button
+              onClick={() => setBanHistOpen(true)}
+              className="flex items-center gap-1 text-xs font-medium text-amber-400 border-none bg-transparent cursor-pointer"
+            >
+              <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="w-3.5 h-3.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
               </svg>
-              Verified
-            </span>
-          ) : (
-            <span className="text-[#6B7280] text-xs">Unverified</span>
-          )}
-          {user.isAdmin && (
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Admin</span>
+              {banCount} ban{banCount > 1 ? "s" : ""}
+            </button>
           )}
         </div>
+
+        <div className="flex items-center justify-between gap-2">
+          <UserStatusBadge user={user} />
+          <BanActions user={user} currentUserId={currentUserId} onAction={onAction} loadingId={loadingId} />
+        </div>
       </div>
-      <div className="flex items-center justify-between gap-2">
-        <UserStatusBadge user={user} />
-        <BanActions user={user} currentUserId={currentUserId} onAction={onAction} loadingId={loadingId} />
-      </div>
-    </div>
+
+      {reportsOpen && <UserReportsModal userId={user._id} authenticatedFetch={authenticatedFetch} onClose={() => setReportsOpen(false)} />}
+      {banHistOpen && <BanHistoryModal user={user} onClose={() => setBanHistOpen(false)} />}
+    </>
   );
 }
 
@@ -786,7 +962,7 @@ function UsersTab({ authenticatedFetch }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                {["Email", "Joined", "Verified", "Status", "Actions"].map((h) => (
+                {["Email", "Joined", "Verified", "Status", "Reports", "Ban History", "Actions"].map((h) => (
                   <th key={h} className="text-left text-[0.65rem] font-semibold tracking-widest text-[#4B5563] uppercase px-4 py-3">{h}</th>
                 ))}
               </tr>
@@ -795,7 +971,7 @@ function UsersTab({ authenticatedFetch }) {
               {loading && Array.from({ length: 5 }).map((_, i) => <UserRowSkeleton key={i} />)}
               {!loading && users.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center text-[#4B5563] text-sm py-12">
+                  <td colSpan={7} className="text-center text-[#4B5563] text-sm py-12">
                     {search ? `No users found matching "${search}"` : "No users found."}
                   </td>
                 </tr>
@@ -826,6 +1002,12 @@ function UsersTab({ authenticatedFetch }) {
                   </td>
                   <td className="px-4 py-3.5">
                     <UserStatusBadge user={user} />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <ReportCell user={user} authenticatedFetch={authenticatedFetch} />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <BanHistoryCell user={user} />
                   </td>
                   <td className="px-4 py-3.5">
                     <BanActions user={user} currentUserId={currentUserId} onAction={handleAction} loadingId={loadingId} />
@@ -859,6 +1041,7 @@ function UsersTab({ authenticatedFetch }) {
               currentUserId={currentUserId}
               onAction={handleAction}
               loadingId={loadingId}
+              authenticatedFetch={authenticatedFetch}
             />
           ))}
         </div>
