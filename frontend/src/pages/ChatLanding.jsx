@@ -104,7 +104,8 @@ export default function ChatLanding() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const username = (localStorage.getItem("email")).split("@")[0];
+  const email = localStorage.getItem("email");
+  const username = email ? email.split("@")[0] : "Student";
 
   return (
     <div
