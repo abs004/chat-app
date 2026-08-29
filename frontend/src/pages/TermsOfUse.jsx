@@ -41,9 +41,9 @@ export default function TermsOfUse() {
     <div className="flex flex-col h-screen bg-[#0D0F12] text-white" style={{ fontFamily: "'Sora', sans-serif" }}>
       {/* Header */}
       <header className="flex-none px-6 py-4 border-b border-white/[0.06] bg-[#111418]">
-        <div className="flex items-center gap-2.5 max-w-3xl mx-auto">
-          <img src="/favicon-96x96.png" alt="G-Chat" className="w-8 h-8" />
-          <span className="text-white font-bold text-lg tracking-tight">G-Chat</span>
+        <div className="flex md:hidden items-center gap-0 mb-8">
+            <img src="/logo.png" alt="G-Chat" className="h-14 w-auto -mr-3" />
+            <span className="text-gray-900 font-semibold text-base" style={{fontFamily: "'Sora', sans-serif"}}>G-Chat</span>
         </div>
       </header>
 

@@ -210,13 +210,19 @@ export default function ChatLanding() {
       <AmbientDots />
 
       <header className="relative z-10 flex items-center justify-between px-8 py-5 border-b border-white/5">
-        <div className="flex items-center gap-2.5">
-          <img src="/favicon-96x96.png" alt="G-Chat" className="w-8 h-8" />
-          <div className="flex flex-col">
-            <span className="text-white font-semibold text-lg tracking-tight leading-tight">G-Chat</span>
-            <span className="text-[#6B7280] text-xs font-normal tracking-normal">GEC Chat</span>
+        <div className="relative z-10">
+            <div className="flex items-center gap-0 mb-3">
+            <img src="/logo.png" alt="G-Chat" className="h-14 w-auto -mr-3" />
+            <div className="flex flex-col">
+             <span className="text-white font-semibold text-lg tracking-tight leading-tight" style={{fontFamily: "'Sora', sans-serif"}}>
+              G-Chat
+             </span>
+             <span className="text-[#6B7280] text-xs font-normal tracking-normal" style={{fontFamily: "'Sora', sans-serif"}}>
+               GEC Chat
+             </span>
+            </div>
+            </div>
           </div>
-        </div>
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-2">

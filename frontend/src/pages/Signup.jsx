@@ -128,16 +128,16 @@ export default function Signup() {
           <AmbientDots />
 
           <div className="relative z-10">
-            <div className="flex items-center gap-2.5 mb-3">
-              <img src="/favicon-96x96.png" alt="G-Chat" className="w-8 h-8" />
-              <div className="flex flex-col">
-                <span className="text-white font-semibold text-lg tracking-tight leading-tight" style={{ fontFamily: "'Sora', sans-serif" }}>
-                  G-Chat
-                </span>
-                <span className="text-[#6B7280] text-xs font-normal tracking-normal" style={{ fontFamily: "'Sora', sans-serif" }}>
-                  GEC Chat
-                </span>
-              </div>
+            <div className="flex items-center gap-0 mb-3">
+            <img src="/logo.png" alt="G-Chat" className="h-14 w-auto -mr-3" />
+            <div className="flex flex-col">
+             <span className="text-white font-semibold text-lg tracking-tight leading-tight" style={{fontFamily: "'Sora', sans-serif"}}>
+              G-Chat
+             </span>
+             <span className="text-[#6B7280] text-xs font-normal tracking-normal" style={{fontFamily: "'Sora', sans-serif"}}>
+               GEC Chat
+             </span>
+            </div>
             </div>
           </div>
 
@@ -164,9 +164,9 @@ export default function Signup() {
         <div className="flex-1 bg-white flex flex-col justify-center px-10 py-10">
 
           {/* Mobile logo */}
-          <div className="flex md:hidden items-center gap-2 mb-8">
-            <img src="/favicon-96x96.png" alt="G-Chat" className="w-8 h-8" />
-            <span className="text-gray-900 font-semibold text-base" style={{ fontFamily: "'Sora', sans-serif" }}>G-Chat</span>
+          <div className="flex md:hidden items-center gap-0 mb-8">
+            <img src="/logo.png" alt="G-Chat" className="h-14 w-auto -mr-3" />
+            <span className="text-gray-900 font-semibold text-base" style={{fontFamily: "'Sora', sans-serif"}}>G-Chat</span>
           </div>
 
           <p className="text-xs font-semibold text-emerald-500 tracking-widest uppercase mb-2">Get started</p>

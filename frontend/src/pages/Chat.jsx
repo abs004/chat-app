@@ -245,9 +245,9 @@ export default function Chat() {
             <ChevronLeft size={18} />
             Back
           </button>
-          <div className="flex items-center gap-2">
-            <img src="/favicon-96x96.png" alt="G-Chat" className="w-8 h-8" />
-            <span className="text-white font-semibold text-[15px] tracking-tight">G-Chat</span>
+         <div className="flex md:hidden items-center gap-0 mb-8">
+            <img src="/logo.png" alt="G-Chat" className="h-14 w-auto -mr-3" />
+            <span className="text-gray-900 font-semibold text-base" style={{fontFamily: "'Sora', sans-serif"}}>G-Chat</span>
           </div>
           <button
             onClick={() => {

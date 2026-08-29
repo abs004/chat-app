@@ -136,8 +136,8 @@ export default function Login() {
         <div className="flex-1 bg-white flex flex-col justify-center px-10 py-12">
 
           {/* Mobile logo */}
-          <div className="flex md:hidden items-center gap-2 mb-8">
-            <img src="/logo.png" alt="G-Chat" className="h-14 w-auto" />
+          <div className="flex md:hidden items-center gap-0 mb-8">
+            <img src="/logo.png" alt="G-Chat" className="h-14 w-auto -mr-3" />
             <span className="text-gray-900 font-semibold text-base" style={{fontFamily: "'Sora', sans-serif"}}>G-Chat</span>
           </div>
 
