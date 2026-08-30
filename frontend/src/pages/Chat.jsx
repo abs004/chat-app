@@ -220,7 +220,7 @@ export default function Chat() {
   };
 
   if (isMatching) return <MatchingScreen onCancel={handleCancelMatch} />;
-
+  if (!isMatching && !conversationId && !localEnded) return null;
   return (
     <div className="flex h-screen bg-[#0D0F12] text-white overflow-hidden" style={{ fontFamily: "'Sora', sans-serif" }}>
       <ChatSidebar
