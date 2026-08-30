@@ -174,11 +174,14 @@ export default function Chat() {
   const navigate = useNavigate();
   const { authenticatedFetch } = useAuth();
 
-  useEffect(() => {
-    if (!isMatching && !conversationId && !localEnded) {
+useEffect(() => {
+  if (!isMatching && !conversationId && !localEnded) {
+    const timer = setTimeout(() => {
       navigate("/chat-landing");
-    }
-  }, [isMatching, conversationId, localEnded, navigate]);
+    }, 500);
+    return () => clearTimeout(timer);
+  }
+}, [isMatching, conversationId, localEnded, navigate]);
 
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isEndModalOpen, setIsEndModalOpen] = useState(false);
