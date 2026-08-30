@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import useChat from "../hooks/useChat.js";
@@ -173,7 +173,7 @@ export default function Chat() {
 
   const navigate = useNavigate();
   const { authenticatedFetch } = useAuth();
-  
+
   useEffect(() => {
     if (!isMatching && !conversationId && !localEnded) {
       navigate("/chat-landing");
