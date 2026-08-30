@@ -218,8 +218,8 @@ const useChat = () => {
     isMatchingRef.current = false;
     setLocalEnded(false);
     setIsActive(false);
-    setConversationId(null);
     setMessages([]);
+    setConversationId(null);
   }, [emitLeaveChat]);
 
   const handleNext = useCallback(() => {
