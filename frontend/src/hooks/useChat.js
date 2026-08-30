@@ -217,6 +217,9 @@ const useChat = () => {
     setIsMatching(false);
     isMatchingRef.current = false;
     setLocalEnded(false);
+    setIsActive(false);
+    setConversationId(null);
+    setMessages([]);
   }, [emitLeaveChat]);
 
   const handleNext = useCallback(() => {
