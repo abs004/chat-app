@@ -257,7 +257,7 @@ useEffect(() => {
           </button>
          <div className="flex md:hidden items-center gap-0">
             <img src="/logo.png" alt="G-Chat" className="h-14 w-auto -mr-3" />
-            <span className="text-gray-900 font-semibold text-base" style={{fontFamily: "'Sora', sans-serif"}}>G-Chat</span>
+            <span className="text-white font-semibold text-lg tracking-tight leading-tight" style={{fontFamily: "'Sora', sans-serif"}}>G-Chat</span>
           </div>
           <button
             onClick={() => {
