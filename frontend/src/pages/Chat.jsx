@@ -225,7 +225,7 @@ useEffect(() => {
   if (isMatching) return <MatchingScreen onCancel={handleCancelMatch} />;
   if (!isMatching && !conversationId && !localEnded) return null;
   return (
-    <div className="flex flex-col bg-[#0D0F12] text-white" style={{ height: '100dvh', fontFamily: "'Sora', sans-serif" }}>
+    <div className="flex bg-[#0D0F12] text-white overflow-hidden" style={{ height: '100dvh', fontFamily: "'Sora', sans-serif" }}>
       <ChatSidebar
         userId={userId}
         canReport={conversationId !== null}
