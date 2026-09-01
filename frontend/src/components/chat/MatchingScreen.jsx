@@ -3,7 +3,7 @@
  */
 const MatchingScreen = ({ onCancel }) => (
   <div
-    className="flex h-screen bg-[#0D0F12] text-white justify-center items-center flex-col overflow-hidden"
+    className="flex h-[100dvh] bg-[#0D0F12] text-white justify-center items-center flex-col overflow-hidden"
     style={{ fontFamily: "'Sora', sans-serif" }}
   >
     {/* Animated rings */}

@@ -225,7 +225,7 @@ useEffect(() => {
   if (isMatching) return <MatchingScreen onCancel={handleCancelMatch} />;
   if (!isMatching && !conversationId && !localEnded) return null;
   return (
-    <div className="flex h-screen bg-[#0D0F12] text-white overflow-hidden" style={{ fontFamily: "'Sora', sans-serif" }}>
+    <div className="flex h-[100dvh] bg-[#0D0F12] text-white overflow-hidden" style={{ fontFamily: "'Sora', sans-serif" }}>
       <ChatSidebar
         userId={userId}
         canReport={conversationId !== null}
@@ -255,7 +255,7 @@ useEffect(() => {
             <ChevronLeft size={18} />
             Back
           </button>
-         <div className="flex md:hidden items-center gap-0 mb-8">
+         <div className="flex md:hidden items-center gap-0">
             <img src="/logo.png" alt="G-Chat" className="h-14 w-auto -mr-3" />
             <span className="text-gray-900 font-semibold text-base" style={{fontFamily: "'Sora', sans-serif"}}>G-Chat</span>
           </div>
