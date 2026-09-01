@@ -225,7 +225,7 @@ useEffect(() => {
   if (isMatching) return <MatchingScreen onCancel={handleCancelMatch} />;
   if (!isMatching && !conversationId && !localEnded) return null;
   return (
-    <div className="flex h-[100dvh] bg-[#0D0F12] text-white overflow-hidden" style={{ fontFamily: "'Sora', sans-serif" }}>
+    <div className="flex flex-col bg-[#0D0F12] text-white" style={{ height: '100dvh', fontFamily: "'Sora', sans-serif" }}>
       <ChatSidebar
         userId={userId}
         canReport={conversationId !== null}
@@ -236,7 +236,7 @@ useEffect(() => {
         }}
       />
 
-      <main className="flex-1 flex flex-col overflow-hidden relative">
+      <main className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
         {/* Desktop Back Button (absolute) */}
         <button
           onClick={() => navigate("/chat-landing")}
