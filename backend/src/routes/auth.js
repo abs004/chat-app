@@ -30,7 +30,7 @@ const loginLimiter = rateLimit({
 // Rate limiter for signup: max 5 attempts per IP per hour
 const signupLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5,
+  max: 1000,
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: "Too many accounts created from this IP, please try again later" },
