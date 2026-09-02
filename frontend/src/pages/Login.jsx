@@ -93,8 +93,7 @@ export default function Login() {
       <div className="w-full max-w-[900px] min-h-[520px] rounded-2xl overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.6)] flex">
 
         {/* Left panel — dark, ambient */}
-        <div className="relative hidden md:flex flex-col justify-between w-[45%] bg-[#111418] p-10 overflow-hidden">
-          <AmbientDots />
+        <div className="relative hidden md:flex flex-col justify-start gap-12 w-[45%] bg-[#111418] p-10 overflow-hidden">          <AmbientDots />
 
           {/* Brand */}
           <div className="relative z-10">

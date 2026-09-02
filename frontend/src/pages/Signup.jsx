@@ -124,7 +124,7 @@ export default function Signup() {
       <div className="w-full max-w-[900px] rounded-2xl overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.6)] flex">
 
         {/* Left panel */}
-        <div className="relative hidden md:flex flex-col justify-between w-[45%] bg-[#111418] p-10 overflow-hidden">
+        <div className="relative hidden md:flex flex-col justify-start gap-12 w-[45%] bg-[#111418] p-10 overflow-hidden">
           <AmbientDots />
 
           <div className="relative z-10">
@@ -149,14 +149,6 @@ export default function Signup() {
             <p className="text-[#6B7280] text-sm leading-relaxed">
               One account. Infinite conversations. Connect anonymously with students who are just as curious as you are.
             </p>
-          </div>
-
-          <div className="relative z-10 flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span className="text-[#6B7280] text-xs">People online right now</span>
           </div>
         </div>
 
