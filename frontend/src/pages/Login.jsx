@@ -122,15 +122,7 @@ export default function Login() {
             </p>
           </div>
 
-          {/* Online indicator */}
-          <div className="relative z-10 flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span className="text-[#6B7280] text-xs">People online right now</span>
-          </div>
-        </div>
+
 
         {/* Right panel — form */}
         <div className="flex-1 bg-white flex flex-col justify-center px-10 py-12">
