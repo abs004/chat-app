@@ -21,7 +21,7 @@ const router = Router();
 // Rate limiter for login: max 10 attempts per IP per 15 minutes
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10,
+  max: 10000,
   standardHeaders: true,  // Return rate limit info in RateLimit-* headers
   legacyHeaders: false,
   message: { message: "Too many login attempts, please try again later" },
