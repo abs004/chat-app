@@ -15,13 +15,13 @@ const userSchema = new mongoose.Schema(
     },
     isVerified: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     verificationToken: String,
     verificationTokenExpires: Date,
     hasAcceptedTerms: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     avatarSeed: {
       type: String,
