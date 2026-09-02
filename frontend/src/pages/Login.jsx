@@ -121,8 +121,7 @@ export default function Login() {
               Random connections with people from your campus. No profiles, no filters — just real conversations.
             </p>
           </div>
-
-
+        </div>
 
         {/* Right panel — form */}
         <div className="flex-1 bg-white flex flex-col justify-center px-10 py-12">
