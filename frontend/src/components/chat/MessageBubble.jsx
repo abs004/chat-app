@@ -59,7 +59,7 @@ const MessageBubble = ({ message, isOwn, partnerAvatarSeed, onReply }) => {
 
   // ── Reply quote preview ──────────────────────────────────────────────────────
   const ReplyQuote = () => {
-    if (!message.replyTo) return null;
+    if (!message.replyTo?.content) return null;
     const label = message.replyTo.senderIsYou ? "You" : "Partner";
     const preview = message.replyTo.content?.length > 60
       ? message.replyTo.content.slice(0, 60) + "…"
