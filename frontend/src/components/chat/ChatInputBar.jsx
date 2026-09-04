@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
+import { CornerDownLeft, X } from "lucide-react";
 
 /**
  * The bottom input bar with End, message input, Send, Skip, and Emoji controls.
  */
-const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, isActive, localEnded, insertEmoji }) => {
+const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, isActive, localEnded, insertEmoji, replyingTo, cancelReply }) => {
   const [showPicker, setShowPicker] = useState(false);
 
   const pickerRef = useRef(null);
@@ -56,7 +57,24 @@ const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, 
         </div>
       )}
 
-     
+      {/* Reply preview bar */}
+      {replyingTo && isActive && !localEnded && (
+        <div className="flex items-center gap-2 bg-emerald-500/10 border-t border-emerald-500/20 -mx-3 sm:-mx-5 -mt-3.5 px-3 pt-2.5 pb-2 mb-1">
+          <CornerDownLeft size={14} className="text-emerald-400 shrink-0" />
+          <span className="text-emerald-400 text-xs font-medium shrink-0">Replying to:</span>
+          <span className="text-[#9CA3AF] text-xs truncate flex-1">
+            {replyingTo.content?.length > 50 ? replyingTo.content.slice(0, 50) + "…" : replyingTo.content}
+          </span>
+          <button
+            onClick={cancelReply}
+            className="text-[#6B7280] hover:text-white bg-transparent border-none cursor-pointer shrink-0 p-0.5"
+            aria-label="Cancel reply"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
       {/* Button row */}
       <div className="flex items-center gap-2">
         {/* End / Next Toggle */}

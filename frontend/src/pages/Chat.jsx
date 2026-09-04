@@ -169,6 +169,7 @@ export default function Chat() {
     isMatching, isActive, localEnded, isTyping,
     userId, partnerUserId, partnerAvatarSeed, conversationId, sendMessage, handleEnd, handleNext, handleCancelMatch, handleKeyDown,
     insertEmoji, isBlocking, confirmBlocker, cancelBlocker,
+    replyingTo, handleReply, cancelReply,
   } = useChat();
 
   const navigate = useNavigate();
@@ -284,7 +285,7 @@ useEffect(() => {
           {localEnded ? "You ended the chat" : (isActive ? "Connected to a stranger" : "Partner disconnected")}
         </div>
 
-        <MessageList messages={messages} userId={userId} isActive={isActive} isTyping={isTyping} partnerAvatarSeed={partnerAvatarSeed} />
+        <MessageList messages={messages} userId={userId} isActive={isActive} isTyping={isTyping} partnerAvatarSeed={partnerAvatarSeed} onReply={handleReply} />
 
         {/* Typing Indicator */}
         <div className="px-3 sm:px-6 pb-2 min-h-[32px] flex items-center">
@@ -310,6 +311,8 @@ useEffect(() => {
           isActive={isActive}
           localEnded={localEnded}
           insertEmoji={insertEmoji}
+          replyingTo={replyingTo}
+          cancelReply={cancelReply}
         />
       </main>
 

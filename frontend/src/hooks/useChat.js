@@ -29,6 +29,7 @@ const useChat = () => {
   const [isActive, setIsActive] = useState(true);
   const [localEnded, setLocalEnded] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null); // { messageId, content, isOwn }
   const typingTimeoutRef = useRef(null);
 
 
@@ -197,14 +198,32 @@ const useChat = () => {
   }, []);
 
   // ── Actions ──────────────────────────────────────────────────────────────
+  const cancelReply = useCallback(() => setReplyingTo(null), []);
+
+  const handleReply = useCallback((message) => {
+    setReplyingTo({
+      messageId: message._id,
+      content: message.content,
+      isOwn: message.sender === userId,
+    });
+  }, [userId]);
+
   const sendMessage = useCallback(() => {
     if (!input.trim() || !conversationId || !isActive || localEnded) return;
     socketRef.current?.emit("send-message", {
       conversationId,
       content: input.trim(),
+      ...(replyingTo ? {
+        replyTo: {
+          messageId: replyingTo.messageId,
+          content: replyingTo.content,
+          senderIsYou: replyingTo.isOwn,
+        }
+      } : {}),
     });
     setInput("");
-  }, [input, conversationId, isActive, socketRef]);
+    cancelReply();
+  }, [input, conversationId, isActive, localEnded, socketRef, replyingTo, cancelReply]);
 
   const handleEnd = useCallback(() => {
     emitLeaveChat(conversationIdRef.current);
@@ -270,6 +289,9 @@ const useChat = () => {
     handleCancelMatch,
     handleKeyDown,
     insertEmoji,
+    replyingTo,
+    handleReply,
+    cancelReply,
     // Blocker state for the confirmation modal in Chat.jsx
     isBlocking: blocker.state === "blocked",
     confirmBlocker,

@@ -5,7 +5,7 @@ import { getAvatarUrl } from "../../utils/avatarUtils.js";
 /**
  * Scrollable message list with typing indicator.
  */
-const MessageList = ({ messages, userId, isActive, isTyping, partnerAvatarSeed }) => {
+const MessageList = ({ messages, userId, isActive, isTyping, partnerAvatarSeed, onReply }) => {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -30,6 +30,7 @@ const MessageList = ({ messages, userId, isActive, isTyping, partnerAvatarSeed }
           message={msg}
           isOwn={msg.sender === userId}
           partnerAvatarSeed={msg.sender !== userId ? partnerAvatarSeed : undefined}
+          onReply={onReply}
         />
       ))}
 
