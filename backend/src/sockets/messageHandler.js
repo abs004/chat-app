@@ -20,7 +20,7 @@ const registerMessageHandlers = (socket, io) => {
     socket.to(conversationId).emit("stop-typing");
   });
 
-  socket.on("send-message", async ({ conversationId, content } = {}) => {
+  socket.on("send-message", async ({ conversationId, content, replyTo } = {}) => {
     if (!conversationId) return;
 
     // 1. Strip any MongoDB operator keys (e.g. $where, $gt) from the payload.
@@ -41,17 +41,31 @@ const registerMessageHandlers = (socket, io) => {
       return;
     }
 
+    // 5. Validate and sanitize optional replyTo.
+    let replyToField = null;
+    if (replyTo && typeof replyTo === "object" && replyTo.messageId) {
+      const replyContent = typeof replyTo.content === "string"
+        ? replyTo.content.slice(0, 200)
+        : null;
+      replyToField = {
+        messageId:   replyTo.messageId,
+        content:     replyContent,
+        senderIsYou: typeof replyTo.senderIsYou === "boolean" ? replyTo.senderIsYou : null,
+      };
+    }
+
     try {
       const message = new Message({
-        sender: socket.userId,
+        sender:       socket.userId,
         conversation: conversationId,
-        content: trimmed,
+        content:      trimmed,
+        ...(replyToField ? { replyTo: replyToField } : {}),
       });
 
       await message.save();
 
-      // Broadcast the saved message (with _id and createdAt) to the entire room
-      io.to(conversationId).emit("receive-message", message);
+      // Broadcast the saved message (with _id, createdAt, and replyTo) to the entire room
+      io.to(conversationId).emit("receive-message", message.toObject());
     } catch (err) {
       console.error("[Socket] send-message error:", err.message);
       // Notify sender of the failure so the UI can display an error state
