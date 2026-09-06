@@ -28,8 +28,8 @@ const MessageList = ({ messages, userId, isActive, isTyping, partnerAvatarSeed, 
         <MessageBubble
           key={msg._id}
           message={msg}
-          isOwn={msg.sender === userId}
-          partnerAvatarSeed={msg.sender !== userId ? partnerAvatarSeed : undefined}
+          isOwn={msg.sender?.toString() === userId?.toString()}
+          partnerAvatarSeed={msg.sender?.toString() !== userId?.toString() ? partnerAvatarSeed : undefined}
           onReply={onReply}
         />
       ))}
