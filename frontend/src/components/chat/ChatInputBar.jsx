@@ -35,8 +35,8 @@ const ChatInputBar = ({ input, onInputChange, onKeyDown, onSend, onEnd, onNext, 
 
   return (
     <div
-      className="shrink-0 relative bg-[#111418] border-t border-white/[0.06] px-3 sm:px-5 pt-3.5 pb-3 flex flex-col gap-2.5"
-      style={{ fontFamily: "'Sora', sans-serif" }}
+      className="shrink-0 relative bg-[#111418] border-t border-white/[0.06] px-3 sm:px-5 pt-3.5 flex flex-col gap-2.5"
+      style={{ fontFamily: "'Sora', sans-serif", paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}
     >
       {/* Desktop picker — floats above the emoji button */}
       {showPicker && (

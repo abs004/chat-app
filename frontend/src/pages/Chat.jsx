@@ -226,7 +226,9 @@ useEffect(() => {
   if (isMatching) return <MatchingScreen onCancel={handleCancelMatch} />;
   if (!isMatching && !conversationId && !localEnded) return null;
   return (
-    <div className="flex bg-[#0D0F12] text-white overflow-hidden" style={{ height: '100dvh', fontFamily: "'Sora', sans-serif" }}>
+    <div className="flex flex-col bg-[#0D0F12] text-white" style={{ height: '100dvh', overflow: 'hidden', fontFamily: "'Sora', sans-serif" }}>
+      {/* Desktop sidebar + main content row */}
+      <div className="flex flex-1 min-h-0">
       <ChatSidebar
         userId={userId}
         canReport={conversationId !== null}
@@ -248,7 +250,7 @@ useEffect(() => {
         </button>
 
         {/* Mobile top bar */}
-        <div className="flex md:hidden items-center justify-between bg-[#111418] border-b border-white/[0.06] px-4 py-3">
+        <div className="shrink-0 flex md:hidden items-center justify-between bg-[#111418] border-b border-white/[0.06] px-4 py-3">
           <button
             onClick={() => navigate("/chat-landing")}
             className="flex items-center gap-1 bg-transparent text-[#6B7280] hover:text-white border-none transition-colors duration-200 text-sm font-medium"
@@ -277,7 +279,7 @@ useEffect(() => {
           </button>
         </div>
 
-        <div className={`flex items-center justify-center gap-2 px-6 py-2.5 border-b text-xs font-semibold tracking-widest uppercase transition-colors duration-300 min-h-[36px]
+        <div className={`shrink-0 flex items-center justify-center gap-2 px-6 py-2.5 border-b text-xs font-semibold tracking-widest uppercase transition-colors duration-300 min-h-[36px]
           ${!localEnded && isActive
             ? "bg-emerald-500/5 border-emerald-500/10 text-emerald-500"
             : "bg-red-500/5 border-red-500/10 text-red-400"}`}>
@@ -288,7 +290,7 @@ useEffect(() => {
         <MessageList messages={messages} userId={userId} isActive={isActive} isTyping={isTyping} partnerAvatarSeed={partnerAvatarSeed} onReply={handleReply} />
 
         {/* Typing Indicator */}
-        <div className="px-3 sm:px-6 pb-2 min-h-[32px] flex items-center">
+        <div className="shrink-0 px-3 sm:px-6 pb-2 min-h-[32px] flex items-center">
           {isTyping && isActive && (
             <div className="flex items-center gap-2 text-emerald-500/80 text-sm font-medium transition-all duration-300">
               <span>Partner is typing</span>
@@ -315,6 +317,7 @@ useEffect(() => {
           cancelReply={cancelReply}
         />
       </main>
+      </div>{/* end flex row */}
 
       {/* Blocker confirmation modal (for navigation via Back button) */}
       {isBlocking && (
