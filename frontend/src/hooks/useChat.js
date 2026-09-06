@@ -30,6 +30,7 @@ const useChat = () => {
   const [localEnded, setLocalEnded] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null); // { messageId, content, isOwn }
+  const [connectionStatus, setConnectionStatus] = useState("connected");
   const typingTimeoutRef = useRef(null);
 
 
@@ -93,11 +94,20 @@ const useChat = () => {
 
     // Re-emit match-me if the socket drops and reconnects
     const onConnect = () => {
+      setConnectionStatus("connected");
       if (cancelledRef.current) return;
       if (isMatchingRef.current || conversationIdRef.current) {
         socket.emit("match-me");
       }
     };
+
+    const onDisconnect = (reason) => {
+      if (reason !== "io client disconnect") {
+        setConnectionStatus("reconnecting");
+      }
+    };
+    const onReconnect = () => setConnectionStatus("connected");
+    const onReconnectFailed = () => setConnectionStatus("disconnected");
 
     socket.on("match-found", onMatchFound);
     socket.on("receive-message", onReceiveMessage);
@@ -106,6 +116,9 @@ const useChat = () => {
     socket.on("stop-typing", onStopTyping);
     socket.on("connect_error", onConnectError);
     socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    socket.on("reconnect", onReconnect);
+    socket.on("reconnect_failed", onReconnectFailed);
 
     // Request a match as soon as we're wired up
     socket.emit("match-me");
@@ -122,6 +135,9 @@ const useChat = () => {
       socket.off("stop-typing", onStopTyping);
       socket.off("connect_error", onConnectError);
       socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.off("reconnect", onReconnect);
+      socket.off("reconnect_failed", onReconnectFailed);
     };
   }, [socketRef, loadHistory]);
 
@@ -292,6 +308,9 @@ const useChat = () => {
     replyingTo,
     handleReply,
     cancelReply,
+    connectionStatus,
+    setConnectionStatus,
+    socketRef,
     // Blocker state for the confirmation modal in Chat.jsx
     isBlocking: blocker.state === "blocked",
     confirmBlocker,

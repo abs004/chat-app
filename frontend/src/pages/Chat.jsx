@@ -170,6 +170,7 @@ export default function Chat() {
     userId, partnerUserId, partnerAvatarSeed, conversationId, sendMessage, handleEnd, handleNext, handleCancelMatch, handleKeyDown,
     insertEmoji, isBlocking, confirmBlocker, cancelBlocker,
     replyingTo, handleReply, cancelReply,
+    connectionStatus, setConnectionStatus, socketRef,
   } = useChat();
 
   const navigate = useNavigate();
@@ -278,6 +279,31 @@ useEffect(() => {
             </svg>
           </button>
         </div>
+
+        {/* Network Status Banners */}
+        {connectionStatus === "reconnecting" && (
+          <div className="shrink-0 bg-yellow-500/10 border-b border-yellow-500/20 text-yellow-400 text-xs text-center py-2 flex items-center justify-center gap-2">
+            <svg className="animate-spin h-3.5 w-3.5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Reconnecting...
+          </div>
+        )}
+        {connectionStatus === "disconnected" && (
+          <div className="shrink-0 bg-red-500/10 border-b border-red-500/20 text-red-400 text-xs text-center py-2 flex items-center justify-center gap-2">
+            Connection lost.
+            <button
+              onClick={() => {
+                setConnectionStatus("reconnecting");
+                socketRef.current?.connect();
+              }}
+              className="ml-1 underline font-semibold hover:text-red-300"
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
         <div className={`shrink-0 flex items-center justify-center gap-2 px-6 py-2.5 border-b text-xs font-semibold tracking-widest uppercase transition-colors duration-300 min-h-[36px]
           ${!localEnded && isActive
