@@ -121,10 +121,10 @@ const registerMatchHandlers = (socket, io) => {
       // Tier 2: a recent partner, but outside the 2-minute hard-avoid window
       const fallback = !preferred
         ? waitingQueue.find(
-            (u) =>
-              !isHardAvoided(socket, u.userId) &&
-              !isHardAvoided(u.socket, socket.userId)
-          )
+          (u) =>
+            !isHardAvoided(socket, u.userId) &&
+            !isHardAvoided(u.socket, socket.userId)
+        )
         : null;
 
       const partner = preferred ?? fallback;
@@ -252,7 +252,7 @@ const registerMatchHandlers = (socket, io) => {
       } catch (err) {
         console.error("[Socket] Error during deferred disconnect cleanup:", err.message);
       }
-    }, 10_000);
+    }, 6000);
 
     disconnectTimers.set(userId, timer);
   });
