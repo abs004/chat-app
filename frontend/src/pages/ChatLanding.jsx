@@ -189,15 +189,6 @@ export default function ChatLanding() {
     navigate("/login");
   };
 
-  // Close drawer on resize to desktop
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) setDrawerOpen(false);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   const token = getToken();
   const email = token ? JSON.parse(atob(token.split('.')[1]))?.email : null;
   const username = email ? email.split("@")[0] : "Student";
@@ -224,57 +215,24 @@ export default function ChatLanding() {
             </div>
           </div>
 
-        {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-2">
-          {isAdmin && (
-            <button onClick={() => navigate("/admin")}
-              className="text-xs font-semibold text-emerald-400 border border-emerald-500/30 rounded-lg px-3 py-1.5 hover:bg-emerald-500/10 transition-colors duration-150 mr-2 bg-transparent cursor-pointer"
-            >
-              Admin Dashboard
-            </button>
-          )}
-
-          <button
-            onClick={() => navigate("/settings")}
-            title="Change Avatar"
-            className="flex items-center gap-2 text-sm text-[#9CA3AF] hover:text-white transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer border-0 bg-transparent"
-          >
-            <img 
-              src={getAvatarUrl(avatarSeed)} 
-              alt="Avatar" 
-              className="w-5 h-5 object-cover"
-            />
-            <span>Change Avatar</span>
-          </button>
-
-          <button
-            onClick={handleLogout}
-            title="Logout"
-            className="flex items-center gap-2 text-sm text-[#9CA3AF] hover:text-white transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer border-0 bg-transparent"
-          >
-            <LogOut size={16} />
-            <span>Logout</span>
-          </button>
-        </div>
-
-        {/* Mobile Hamburger Button */}
+        {/* Hamburger Menu Button */}
         <button
           onClick={() => setDrawerOpen(true)}
-          className="flex md:hidden text-white p-2 bg-transparent border-none cursor-pointer"
+          className="flex text-white p-2 bg-transparent border-none cursor-pointer transition-opacity hover:opacity-80"
         >
           <Menu size={24} />
         </button>
       </header>
 
-      {/* Mobile Drawer */}
+      {/* Mobile & Desktop Drawer */}
       {drawerOpen && (
         <>
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
             onClick={() => setDrawerOpen(false)}
           />
           <div
-            className={`fixed top-0 right-0 h-full w-64 bg-[#111418] border-l border-white/[0.08] z-50 flex flex-col p-6 md:hidden transition-transform duration-300 ${
+            className={`fixed top-0 right-0 h-full w-72 md:w-80 bg-[#111418] border-l border-white/[0.08] z-50 flex flex-col p-6 transition-transform duration-300 ${
               drawerOpen ? "translate-x-0" : "translate-x-full"
             }`}
           >
