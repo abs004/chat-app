@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { API_BASE_URL } from "../constants/config.js";
 import { getToken } from "../utils/token.js";
+import { useSocket } from "../context/SocketContext.jsx";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -108,6 +109,19 @@ function ErrorCenter({ message, onRetry }) {
 
 const STAT_CARDS = [
   {
+    key: "onlineNow",
+    label: "Online Now",
+    color: "text-emerald-400",
+    bg: "bg-emerald-500/5",
+    iconColor: "text-emerald-500",
+    icon: (
+      <span className="relative flex h-3 w-3 mt-1.5 mr-1.5">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+        <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+      </span>
+    ),
+  },
+  {
     key: "totalUsers",
     label: "Total Users",
     color: "text-white",
@@ -198,6 +212,16 @@ function OverviewTab({ authenticatedFetch }) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const socketRef = useSocket();
+  const [liveUserCount, setLiveUserCount] = useState(null);
+
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket) return;
+    const handleCount = ({ count }) => setLiveUserCount(count);
+    socket.on("admin-user-count", handleCount);
+    return () => socket.off("admin-user-count", handleCount);
+  }, [socketRef]);
 
   const fetchStats = useCallback(async () => {
     setLoading(true);
@@ -225,9 +249,9 @@ function OverviewTab({ authenticatedFetch }) {
       <p className="text-[#6B7280] text-sm mb-6">Platform statistics at a glance.</p>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {loading
-          ? Array.from({ length: 5 }).map((_, i) => <StatCardSkeleton key={i} />)
+          ? Array.from({ length: 6 }).map((_, i) => <StatCardSkeleton key={i} />)
           : STAT_CARDS.map((card) => (
-              <StatCard key={card.key} card={card} value={stats?.[card.key]} />
+              <StatCard key={card.key} card={card} value={card.key === "onlineNow" ? liveUserCount : stats?.[card.key]} />
             ))}
       </div>
     </div>

@@ -38,10 +38,15 @@ const initSocket = (httpServer) => {
 
   io.on("connection", (socket) => {
     console.log(`[Socket] User connected: ${socket.userId}`);
+    io.emit("admin-user-count", { count: io.engine.clientsCount });
 
     // Register event groups — each handler file is responsible for its own events
     registerMatchHandlers(socket, io);
     registerMessageHandlers(socket, io);
+
+    socket.on("disconnect", () => {
+      io.emit("admin-user-count", { count: io.engine.clientsCount });
+    });
   });
 
   return io;
