@@ -1,5 +1,6 @@
 import sanitize from "mongo-sanitize";
 import Message from "../models/Message.js";
+import { encryptMessage } from "../utils/crypto.js";
 
 const MAX_CONTENT_LENGTH = 500;
 
@@ -58,14 +59,20 @@ const registerMessageHandlers = (socket, io) => {
       const message = new Message({
         sender:       socket.userId,
         conversation: conversationId,
-        content:      trimmed,
-        ...(replyToField ? { replyTo: replyToField } : {}),
+        content:      encryptMessage(trimmed),
+        ...(replyToField ? { replyTo: { ...replyToField, content: replyToField.content ? encryptMessage(replyToField.content) : null } } : {}),
       });
 
       await message.save();
 
+      const broadcastMsg = message.toObject();
+      broadcastMsg.content = trimmed;
+      if (broadcastMsg.replyTo && broadcastMsg.replyTo.content) {
+        broadcastMsg.replyTo.content = replyToField.content;
+      }
+
       // Broadcast the saved message (with _id, createdAt, and replyTo) to the entire room
-      io.to(conversationId).emit("receive-message", message.toObject());
+      io.to(conversationId).emit("receive-message", broadcastMsg);
     } catch (err) {
       console.error("[Socket] send-message error:", err.message);
       // Notify sender of the failure so the UI can display an error state

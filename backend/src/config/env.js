@@ -21,6 +21,7 @@ const env = {
   CLIENT_ORIGIN: required("CLIENT_ORIGIN"),
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "15m",
   NODE_ENV: process.env.NODE_ENV || "development",
+  MESSAGE_ENCRYPTION_KEY: required("MESSAGE_ENCRYPTION_KEY"),
 
   // ── Email (Brevo HTTP API) ────────────────────────────────────────────────
   BREVO_API_KEY: required("BREVO_API_KEY"),

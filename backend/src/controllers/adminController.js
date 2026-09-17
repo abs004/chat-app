@@ -4,6 +4,7 @@ import Report from "../models/Report.js";
 import Message from "../models/Message.js";
 import Feedback from "../models/Feedback.js";
 import { scheduleMessageDeletion } from "../utils/messageCleanup.js";
+import { decryptMessage } from "../utils/crypto.js";
 
 // ── GET /admin/stats ──────────────────────────────────────────────────────────
 
@@ -73,7 +74,7 @@ export const handleGetReportMessages = async (req, res, next) => {
 
     const formatted = messages.map(msg => ({
       _id: msg._id,
-      content: msg.content,
+      content: decryptMessage(msg.content),
       createdAt: msg.createdAt,
       sender: msg.sender?.email?.split("@")[0] ?? msg.sender,
     }));

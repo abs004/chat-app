@@ -1,5 +1,6 @@
 import Message from "../models/Message.js";
 import Conversation from "../models/Conversation.js";
+import { decryptMessage } from "../utils/crypto.js";
 
 /**
  * Fetches all messages for a conversation and its active status.
@@ -19,5 +20,14 @@ export const getConversationMessages = async (conversationId) => {
     createdAt: 1,
   });
 
-  return { messages, isActive: conversation.isActive };
+  const decryptedMessages = messages.map(msg => {
+    const obj = msg.toObject();
+    obj.content = decryptMessage(obj.content);
+    if (obj.replyTo && obj.replyTo.content) {
+      obj.replyTo.content = decryptMessage(obj.replyTo.content);
+    }
+    return obj;
+  });
+
+  return { messages: decryptedMessages, isActive: conversation.isActive };
 };
