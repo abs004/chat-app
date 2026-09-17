@@ -14,7 +14,7 @@ export const deleteConversationMessages = async (conversationId) => {
 };
 
 const deletionTimers = new Map();
-const DELETION_DELAY_MS = 15 * 60 * 1000;
+const DELETION_DELAY_MS = 5 * 60 * 1000;
 
 export const scheduleMessageDeletion = (conversationId) => {
   if (!conversationId) return;

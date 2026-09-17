@@ -6,14 +6,22 @@ import { sendVerificationEmail, sendPasswordResetEmail } from "./emailService.js
 import env from "../config/env.js";
 
 const SALT_ROUNDS = 10;
-const TOKEN_EXPIRY_HOURS = 24;
+const TOKEN_EXPIRY_MINUTES = 5;
+const CLEANUP_DELAY_MS = 5 * 60 * 1000;
+
+/**
+ * Tracks pending cleanup timers keyed by userId.toString().
+ * When a user verifies their email the timer is cancelled.
+ * When the server restarts a startup query handles the leftovers.
+ */
+const verificationTimers = new Map();
 
 /**
  * Generates a cryptographically secure hex token and its expiry timestamp.
  */
 const generateVerificationToken = () => ({
   token: crypto.randomBytes(32).toString("hex"),
-  expires: new Date(Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000),
+  expires: new Date(Date.now() + TOKEN_EXPIRY_MINUTES * 60 * 1000),
 });
 
 /**
@@ -49,6 +57,18 @@ export const signup = async (email, password) => {
   sendVerificationEmail(email, token).catch((err) => {
     console.error("[emailService] Failed to send verification email:", err.message);
   });
+
+  // Schedule automatic deletion if the user doesn't verify within 5 minutes
+  const userId = user._id.toString();
+  const timer = setTimeout(async () => {
+    verificationTimers.delete(userId);
+    const stale = await User.findById(userId);
+    if (stale && !stale.isVerified) {
+      await User.findByIdAndDelete(userId);
+      console.log(`[Auth] Deleted unverified account: ${email}`);
+    }
+  }, CLEANUP_DELAY_MS);
+  verificationTimers.set(userId, timer);
 
   return { message: "Account created. Please check your email to verify your account." };
 };
@@ -126,6 +146,14 @@ export const verifyEmail = async (token) => {
   user.verificationTokenExpires = undefined;
   await user.save();
 
+  // Cancel the pending auto-delete timer for this user
+  const userId = user._id.toString();
+  const timer = verificationTimers.get(userId);
+  if (timer) {
+    clearTimeout(timer);
+    verificationTimers.delete(userId);
+  }
+
   return { message: "Email verified successfully. You can now log in." };
 };
 
@@ -143,7 +171,7 @@ export const resendVerification = async (email) => {
 
   const user = await User.findOne({ email });
 
-  // Silently ignore unknown emails or already-verified accounts
+  // Silently ignore unknown emails (including already-deleted accounts) or already-verified accounts
   if (!user || user.isVerified) {
     return GENERIC_RESPONSE;
   }
@@ -154,10 +182,26 @@ export const resendVerification = async (email) => {
   await user.save();
 
   // Fire-and-forget — don't block or fail the response on email delivery.
-  // Mirrors the same pattern used in signup().
   sendVerificationEmail(email, token).catch((err) => {
     console.error("[emailService] Failed to resend verification email:", err.message);
   });
+
+  // Cancel any existing timer and start a fresh 5-minute window
+  const userId = user._id.toString();
+  const existing = verificationTimers.get(userId);
+  if (existing) {
+    clearTimeout(existing);
+    verificationTimers.delete(userId);
+  }
+  const timer = setTimeout(async () => {
+    verificationTimers.delete(userId);
+    const stale = await User.findById(userId);
+    if (stale && !stale.isVerified) {
+      await User.findByIdAndDelete(userId);
+      console.log(`[Auth] Deleted unverified account (after resend): ${email}`);
+    }
+  }, CLEANUP_DELAY_MS);
+  verificationTimers.set(userId, timer);
 
   return GENERIC_RESPONSE;
 };

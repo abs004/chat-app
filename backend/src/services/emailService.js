@@ -85,7 +85,7 @@ export const sendVerificationEmail = async (to, token) => {
     <p style="color:#9ca3af;font-size:15px;line-height:1.6;margin:0 0 28px;">
       Thanks for signing up! Click the button below to verify your
       <strong style="color:#10b981;">${to}</strong> address and activate your account.
-      This link expires in <strong style="color:#f9fafb;">24 hours</strong>.
+      This link expires in <strong style="color:#f9fafb;">5 minutes</strong>.
     </p>
     <table cellpadding="0" cellspacing="0">
       <tr>
