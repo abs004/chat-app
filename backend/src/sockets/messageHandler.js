@@ -79,6 +79,23 @@ const registerMessageHandlers = (socket, io) => {
       socket.emit("message-error", { message: "Failed to send message" });
     }
   });
+
+  socket.on("unsend-message", async ({ messageId, conversationId } = {}) => {
+    if (!messageId || !conversationId) return;
+
+    try {
+      const message = await Message.findById(messageId);
+      if (!message) return;
+
+      if (message.sender.toString() !== socket.userId) return;
+      if (message.conversation.toString() !== conversationId) return;
+
+      await Message.findByIdAndDelete(messageId);
+      io.to(conversationId).emit("message-unsent", { messageId });
+    } catch (err) {
+      console.error("[Socket] unsend-message error:", err.message);
+    }
+  });
 };
 
 export default registerMessageHandlers;

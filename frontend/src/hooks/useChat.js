@@ -82,6 +82,10 @@ const useChat = () => {
       setMessages((prev) => [...prev, message]);
     };
 
+    const onMessageUnsent = ({ messageId }) => {
+      setMessages((prev) => prev.filter((m) => m._id !== messageId));
+    };
+
     const onPartnerDisconnected = () => {
       setIsActive(false);
       setIsTyping(false);
@@ -111,6 +115,7 @@ const useChat = () => {
 
     socket.on("match-found", onMatchFound);
     socket.on("receive-message", onReceiveMessage);
+    socket.on("message-unsent", onMessageUnsent);
     socket.on("partner-disconnected", onPartnerDisconnected);
     socket.on("typing", onTyping);
     socket.on("stop-typing", onStopTyping);
@@ -130,6 +135,7 @@ const useChat = () => {
       // on the "Next" flow where match-me must not see a stale active conversation.
       socket.off("match-found", onMatchFound);
       socket.off("receive-message", onReceiveMessage);
+      socket.off("message-unsent", onMessageUnsent);
       socket.off("partner-disconnected", onPartnerDisconnected);
       socket.off("typing", onTyping);
       socket.off("stop-typing", onStopTyping);
@@ -241,6 +247,14 @@ const useChat = () => {
     cancelReply();
   }, [input, conversationId, isActive, localEnded, socketRef, replyingTo, cancelReply]);
 
+  const unsendMessage = useCallback((messageId) => {
+    if (!conversationId || !isActive || localEnded) return;
+    socketRef.current?.emit("unsend-message", { 
+      messageId, 
+      conversationId 
+    });
+  }, [conversationId, isActive, localEnded, socketRef]);
+
   const handleEnd = useCallback(() => {
     emitLeaveChat(conversationIdRef.current);
     setLocalEnded(true);
@@ -300,6 +314,7 @@ const useChat = () => {
     partnerAvatarSeed,
     handleInputChange,
     sendMessage,
+    unsendMessage,
     handleEnd,
     handleNext,
     handleCancelMatch,
