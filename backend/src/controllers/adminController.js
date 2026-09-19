@@ -109,8 +109,13 @@ export const handleUpdateReportStatus = async (req, res, next) => {
     await report.save();
 
     // Dismissed → resume deletion timer since admin review is done
-    if (status === "dismissed") {
-      scheduleMessageDeletion(report.conversationId);
+    // After updating the report status, clean up messages and conversation
+    if (status === "dismissed" || status === "reviewed") {
+      const report = await Report.findById(reportId);
+      if (report?.conversationId) {
+        await deleteConversationMessages(report.conversationId);
+        await Conversation.findByIdAndDelete(report.conversationId);
+      }
     }
 
     return res.json(report);
