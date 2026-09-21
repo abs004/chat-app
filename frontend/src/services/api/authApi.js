@@ -8,6 +8,7 @@ import { getToken } from "../../utils/token.js";
 const request = async (path, options = {}) => {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     headers: { "Content-Type": "application/json", ...options.headers },
+    credentials: "include",
     ...options,
   });
 
