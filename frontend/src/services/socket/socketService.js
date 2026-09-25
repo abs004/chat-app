@@ -1,5 +1,5 @@
 import { io } from "socket.io-client";
-import { API_BASE_URL } from "../../constants/config.js";
+import { API_BASE_URL, SOCKET_URL } from "../../constants/config.js";
 import { setToken, removeToken } from "../../utils/token.js";
 
 /**
@@ -23,7 +23,7 @@ let isRefreshing = false;
 export const connectSocket = (token) => {
   if (socket?.connected) return socket;
 
-  socket = io(API_BASE_URL, {
+  socket = io(SOCKET_URL, {
     auth: { token },
     // Disable built-in auto-reconnect so we can control it manually
     // after refreshing the token — otherwise Socket.IO retries with the

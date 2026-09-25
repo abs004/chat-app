@@ -21,7 +21,17 @@ const createApp = () => {
   app.use(cookieParser());
   app.use(
     cors({
-      origin: env.CLIENT_ORIGIN,
+      // Allow requests from the Vercel frontend AND requests with no Origin header.
+      // When Vercel proxies /api/* to Render, the hop is server-to-server and the
+      // Origin header may be absent — we must permit that for the proxy to work.
+      origin: (origin, callback) => {
+        const allowed = [env.CLIENT_ORIGIN];
+        if (!origin || allowed.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
       credentials: true,               // allow cookies on cross-origin requests
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     })

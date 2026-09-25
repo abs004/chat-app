@@ -17,15 +17,25 @@ const REFRESH_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Shared cookie options for the refresh token.
- * httpOnly prevents JS access; secure ensures HTTPS-only in production.
+ *
+ * SameSite=Lax  — safe now that the cookie is first-party on gec-chat.vercel.app.
+ *                  The Vercel proxy makes /api/refresh a same-site request, so
+ *                  Lax is both correct and more secure than "none".
+ * Secure=true   — Vercel always serves HTTPS; cookie is only sent over TLS.
+ * HttpOnly=true — JS cannot read or exfiltrate the token.
+ * Path="/"      — sent on every /api/* request, including /api/refresh.
+ * Domain omitted — browser binds the cookie to the exact host (gec-chat.vercel.app).
  */
 const refreshCookieOptions = {
   httpOnly: true,
   secure: true,
-  sameSite: "none",
+  sameSite: "lax",
   maxAge: REFRESH_COOKIE_MAX_AGE_MS,
   path: "/",
 };
+
+/** Cache-Control header applied to all auth endpoints to prevent CDN caching. */
+const NO_CACHE = "no-store, no-cache, must-revalidate, private";
 
 /**
  * POST /signup
@@ -93,6 +103,9 @@ export const handleLogin = async (req, res, next) => {
 
     res.cookie("refreshToken", refreshToken, refreshCookieOptions);
 
+    // Prevent Vercel CDN from caching the auth response (which contains Set-Cookie)
+    res.set("Cache-Control", NO_CACHE);
+
     // Return only the access token in the body — never the refresh token.
     return sendSuccess(res, result);
   } catch (err) {
@@ -134,6 +147,7 @@ export const handleRefresh = async (req, res, next) => {
     const { signToken } = await import("../utils/token.js");
     const newAccessToken = signToken({ userId: decoded.userId });
 
+    res.set("Cache-Control", NO_CACHE);
     return sendSuccess(res, { token: newAccessToken });
   } catch (err) {
     next(err);
@@ -149,9 +163,10 @@ export const handleLogout = (_req, res) => {
   res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: true,
-    sameSite: "none",
+    sameSite: "lax",
     path: "/",
   });
+  res.set("Cache-Control", NO_CACHE);
   return res.status(200).json({ success: true, message: "Logged out successfully" });
 };
 
