@@ -23,8 +23,8 @@ export const AuthProvider = ({ children }) => {
   // Ref so the refresh logic always reads the latest logout without stale closure.
   const logoutRef = useRef(null);
 
-  /** Stores the token, updates userId, isAdmin, and avatarSeed from the login response. */
-  const login = useCallback((newToken, adminFlag = false, seed = "default") => {
+  /** Stores the token, updates userId, isAdmin, avatarSeed, and refreshToken from the login response. */
+  const login = useCallback((newToken, adminFlag = false, seed = "default", refreshToken = null) => {
     setToken(newToken);
     setTokenState(newToken);
     setUserId(getStoredUserId());
@@ -33,6 +33,9 @@ export const AuthProvider = ({ children }) => {
     setIsAdmin(isAdminBool);
     localStorage.setItem("avatarSeed", seed);
     setAvatarSeed(seed);
+    if (refreshToken) {
+      localStorage.setItem("refreshToken", refreshToken);
+    }
   }, []);
 
   /** Updates the user's avatar seed locally. */
@@ -41,7 +44,7 @@ export const AuthProvider = ({ children }) => {
     setAvatarSeed(seed);
   }, []);
 
-  /** Clears auth state and removes the token from storage. */
+  /** Clears auth state and removes all auth tokens from storage. */
   const logout = useCallback(() => {
     removeToken();
     setTokenState(null);
@@ -51,11 +54,9 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("isAdmin");
     localStorage.removeItem("termsAccepted");
     localStorage.removeItem("avatarSeed");
-    // Best-effort: tell the server to clear the httpOnly refresh cookie.
-    fetch(`${API_BASE_URL}/logout`, {
-      method: "POST",
-      credentials: "include",
-    }).catch(() => {});
+    localStorage.removeItem("refreshToken");
+    // Best-effort: notify the server (no-op today, reserved for token revocation).
+    fetch(`${API_BASE_URL}/logout`, { method: "POST" }).catch(() => {});
   }, []);
 
   // Keep the ref in sync so refresh logic always calls the latest logout.
@@ -80,22 +81,30 @@ export const AuthProvider = ({ children }) => {
 
     if (response.status === 401 && !init._isRetry && !isAuthRoute) {
       try {
+        const storedRefreshToken = localStorage.getItem("refreshToken");
+        if (!storedRefreshToken) throw new Error("No refresh token stored");
+
         const refreshRes = await fetch(`${API_BASE_URL}/refresh`, {
           method: "POST",
-          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refreshToken: storedRefreshToken }),
         });
 
         if (!refreshRes.ok) throw new Error("Refresh failed");
 
         const data = await refreshRes.json();
         const newToken = data?.data?.token ?? data?.token;
+        const newRefreshToken = data?.data?.refreshToken ?? data?.refreshToken;
 
         if (!newToken) throw new Error("No token in refresh response");
 
-        // Persist the new token and update state
+        // Persist the new tokens and update state
         setToken(newToken);
         setTokenState(newToken);
         setUserId(getStoredUserId());
+        if (newRefreshToken) {
+          localStorage.setItem("refreshToken", newRefreshToken);
+        }
 
         // Retry the original request with the new token
         const retryInit = {

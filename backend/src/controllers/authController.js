@@ -12,30 +12,7 @@ import Feedback from "../models/Feedback.js";
 
 const ALLOWED_DOMAIN = "@gecskp.ac.in";
 
-/** 7 days in milliseconds — lifetime of the refresh token cookie. */
-const REFRESH_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
-/**
- * Shared cookie options for the refresh token.
- *
- * SameSite=Lax  — safe now that the cookie is first-party on gec-chat.vercel.app.
- *                  The Vercel proxy makes /api/refresh a same-site request, so
- *                  Lax is both correct and more secure than "none".
- * Secure=true   — Vercel always serves HTTPS; cookie is only sent over TLS.
- * HttpOnly=true — JS cannot read or exfiltrate the token.
- * Path="/"      — sent on every /api/* request, including /api/refresh.
- * Domain omitted — browser binds the cookie to the exact host (gec-chat.vercel.app).
- */
-const refreshCookieOptions = {
-  httpOnly: true,
-  secure: true,
-  sameSite: "lax",
-  maxAge: REFRESH_COOKIE_MAX_AGE_MS,
-  path: "/",
-};
-
-/** Cache-Control header applied to all auth endpoints to prevent CDN caching. */
-const NO_CACHE = "no-store, no-cache, must-revalidate, private";
 
 /**
  * POST /signup
@@ -68,7 +45,7 @@ export const handleSignup = async (req, res, next) => {
  * POST /login
  * Validates input, delegates to authService.login, then issues:
  *   - A short-lived access token (15 min) in the response body.
- *   - A long-lived refresh token (7 days) in an httpOnly cookie.
+ *   - A long-lived refresh token (7 days) in the response body (stored by client).
  */
 export const handleLogin = async (req, res, next) => {
   try {
@@ -94,20 +71,15 @@ export const handleLogin = async (req, res, next) => {
     result.isAdmin = user.isAdmin;
     result.avatarSeed = user.avatarSeed;
 
-    // Issue a separate, longer-lived refresh token and store it in an httpOnly cookie.
+    // Issue a separate, longer-lived refresh token and include it in the response body.
+    // The client stores it in localStorage and sends it back via request body on refresh.
     const refreshToken = jwt.sign(
       { userId },
       env.REFRESH_TOKEN_SECRET,
       { expiresIn: "7d" }
     );
 
-    res.cookie("refreshToken", refreshToken, refreshCookieOptions);
-
-    // Prevent Vercel CDN from caching the auth response (which contains Set-Cookie)
-    res.set("Cache-Control", NO_CACHE);
-
-    // Return only the access token in the body — never the refresh token.
-    return sendSuccess(res, result);
+    return sendSuccess(res, { ...result, refreshToken });
   } catch (err) {
     next(err);
   }
@@ -115,13 +87,13 @@ export const handleLogin = async (req, res, next) => {
 
 /**
  * POST /auth/refresh
- * Reads the refresh token from the httpOnly cookie, verifies it with
+ * Reads the refresh token from the request body, verifies it with
  * REFRESH_TOKEN_SECRET, then issues a brand-new access token.
  * Stateless — no DB lookup required.
  */
 export const handleRefresh = async (req, res, next) => {
   try {
-    const token = req.cookies?.refreshToken;
+    const { refreshToken: token } = req.body;
 
     if (!token) {
       return res
@@ -147,7 +119,6 @@ export const handleRefresh = async (req, res, next) => {
     const { signToken } = await import("../utils/token.js");
     const newAccessToken = signToken({ userId: decoded.userId });
 
-    res.set("Cache-Control", NO_CACHE);
     return sendSuccess(res, { token: newAccessToken });
   } catch (err) {
     next(err);
@@ -156,17 +127,11 @@ export const handleRefresh = async (req, res, next) => {
 
 /**
  * POST /auth/logout
- * Clears the refresh token cookie. The client is responsible for
- * discarding the access token from memory.
+ * Client-side logout — the client removes the refresh token from localStorage.
+ * This endpoint exists for symmetry and can be extended to maintain a token
+ * revocation list in the future.
  */
 export const handleLogout = (_req, res) => {
-  res.clearCookie("refreshToken", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
-  });
-  res.set("Cache-Control", NO_CACHE);
   return res.status(200).json({ success: true, message: "Logged out successfully" });
 };
 
