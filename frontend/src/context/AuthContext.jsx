@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useRef } from "react";
+import { createContext, useContext, useState, useCallback, useRef, useEffect } from "react";
 import { API_BASE_URL } from "../constants/config.js";
 import {
   getToken,
@@ -22,6 +22,13 @@ export const AuthProvider = ({ children }) => {
 
   // Ref so the refresh logic always reads the latest logout without stale closure.
   const logoutRef = useRef(null);
+
+  /**
+   * isInitializing: true while we're checking whether the stored access token
+   * is still valid on app boot. ProtectedRoute renders nothing until this is false,
+   * preventing the redirect-to-login flash when a valid refresh token exists.
+   */
+  const [isInitializing, setIsInitializing] = useState(true);
 
   /** Stores the token, updates userId, isAdmin, avatarSeed, and refreshToken from the login response. */
   const login = useCallback((newToken, adminFlag = false, seed = "default", refreshToken = null) => {
@@ -61,6 +68,78 @@ export const AuthProvider = ({ children }) => {
 
   // Keep the ref in sync so refresh logic always calls the latest logout.
   logoutRef.current = logout;
+
+  /**
+   * On mount: check whether the stored access token is still valid.
+   * If it is expired (or missing) but a refreshToken exists, exchange it
+   * silently so the user does not see a login redirect on app reopen.
+   */
+  useEffect(() => {
+    const bootstrap = async () => {
+      const existingToken = getToken();
+      const storedRefreshToken = localStorage.getItem("refreshToken");
+
+      if (existingToken) {
+        // Decode to check expiry without a network call.
+        try {
+          const parts = existingToken.split(".");
+          if (parts.length === 3) {
+            const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+            const expiresAt = payload.exp * 1000;
+            // Token still has more than 30 seconds of life — treat as valid.
+            if (Date.now() < expiresAt - 30_000) {
+              setIsInitializing(false);
+              return;
+            }
+          }
+        } catch {
+          // Malformed token — fall through to refresh attempt.
+        }
+      }
+
+      // Access token is absent or expired. Try the refresh token.
+      if (storedRefreshToken) {
+        try {
+          const refreshRes = await fetch(`${API_BASE_URL}/refresh`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refreshToken: storedRefreshToken }),
+          });
+
+          if (refreshRes.ok) {
+            const data = await refreshRes.json();
+            const newToken = data?.data?.token ?? data?.token;
+            const newRefreshToken = data?.data?.refreshToken ?? data?.refreshToken;
+
+            if (newToken) {
+              setToken(newToken);
+              setTokenState(newToken);
+              setUserId(getStoredUserId());
+              if (newRefreshToken) {
+                localStorage.setItem("refreshToken", newRefreshToken);
+              }
+            } else {
+              // Refresh response was OK but malformed — clear everything.
+              logoutRef.current?.();
+            }
+          } else {
+            // Refresh token is expired or invalid — clear everything.
+            logoutRef.current?.();
+          }
+        } catch {
+          // Network error during bootstrap — leave tokens as-is and let the
+          // user proceed; individual API calls will retry or redirect to login.
+        }
+      } else if (!existingToken) {
+        // No tokens at all — nothing to restore.
+      }
+
+      setIsInitializing(false);
+    };
+
+    bootstrap();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /**
    * Wraps fetch with 401 retry logic:
@@ -127,7 +206,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ token, userId, isAdmin, avatarSeed, login, logout, updateAvatarSeed, authenticatedFetch: authFetch }}>
+    <AuthContext.Provider value={{ token, userId, isAdmin, avatarSeed, isInitializing, login, logout, updateAvatarSeed, authenticatedFetch: authFetch }}>
       {children}
     </AuthContext.Provider>
   );

@@ -25,7 +25,8 @@ const RootLayout = () => (
 
 /** Guard for admin-only routes — redirects non-admins to /chat-landing. */
 const AdminRoute = ({ children }) => {
-  const { token } = useAuth();
+  const { token, isInitializing } = useAuth();
+  if (isInitializing) return null;
   if (!token) return <Navigate to="/login" replace />;
   const isAdmin = localStorage.getItem("isAdmin") === "true";
   if (!isAdmin) return <Navigate to="/chat-landing" replace />;

@@ -70,7 +70,7 @@ export default function TermsOfUse() {
 
             <section>
               <h2 className="text-white font-semibold text-base mb-2">4. Privacy</h2>
-              <p>Messages are temporarily stored during your chat session and deleted within 15 minutes after the chat ends. Messages from reported conversations may be retained for review. We do not sell or share your data with third parties.</p>
+              <p>Messages are temporarily stored during your chat session and deleted within 5 minutes after the chat ends. Messages from reported conversations may be retained for review. We do not sell or share your data with third parties.</p>
             </section>
 
             <section>
