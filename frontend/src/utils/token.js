@@ -43,3 +43,16 @@ export const getStoredUserId = () => {
   const decoded = decodeToken(token);
   return decoded?.userId ?? null;
 };
+
+/**
+ * Returns true if the token is missing, malformed, or its `exp` claim
+ * is in the past. Does NOT verify the signature — that's the server's job.
+ * @param {string|null} token
+ */
+export const isTokenExpired = (token) => {
+  if (!token) return true;
+  const decoded = decodeToken(token);
+  if (!decoded?.exp) return true;
+  // exp is in seconds; Date.now() is milliseconds
+  return decoded.exp * 1000 < Date.now();
+};

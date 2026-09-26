@@ -1,6 +1,7 @@
 import { io } from "socket.io-client";
 import { API_BASE_URL } from "../../constants/config.js";
-import { setToken, removeToken } from "../../utils/token.js";
+import { setToken } from "../../utils/token.js";
+import { silentRefresh } from "../../context/AuthContext.jsx";
 
 /**
  * Singleton Socket.IO service.
@@ -14,8 +15,9 @@ let isRefreshing = false;
 
 /**
  * Creates and connects the socket if not already connected.
- * Attaches a connect_error handler that auto-refreshes the JWT when
- * the server rejects the connection due to an expired/invalid token.
+ * Attaches a connect_error handler that auto-refreshes the JWT via
+ * localStorage refreshToken when the server rejects the connection
+ * due to an expired/invalid token.
  *
  * @param {string} token - JWT auth token sent in the handshake
  * @returns {import('socket.io-client').Socket}
@@ -42,37 +44,36 @@ export const connectSocket = (token) => {
       err.message?.toLowerCase().includes("auth") ||
       err.message?.toLowerCase().includes("token");
 
-    if (!isAuthError || isRefreshing) return;
+    // Also skip banned errors — SocketContext's 'banned' handler covers those.
+    const isBanError = err.message?.toLowerCase().startsWith("banned:");
+
+    if (!isAuthError || isBanError || isRefreshing) return;
 
     isRefreshing = true;
 
     try {
-      const refreshRes = await fetch(`${API_BASE_URL}/refresh`, {
-        method: "POST",
-        credentials: "include",
-      });
+      // Use the shared silentRefresh helper (reads from localStorage, POSTs
+      // to /refresh with body, stores the new access token).
+      const newToken = await silentRefresh();
 
-      if (!refreshRes.ok) throw new Error("Refresh failed");
-
-      const data = await refreshRes.json();
-      const newToken = data?.data?.token ?? data?.token;
-
-      if (!newToken) throw new Error("No token in refresh response");
-
-      // Persist the new token and update the socket's auth so the next
-      // handshake uses the fresh token.
-      setToken(newToken);
+      // Update the socket's auth so the next handshake uses the fresh token.
       socket.auth.token = newToken;
 
       // Manually reconnect now that the token is updated.
       socket.connect();
     } catch {
       // Refresh failed — the session is truly expired.
-      // Tear down the socket and redirect to login.
-      console.warn("[Socket] Token refresh failed. Redirecting to login.");
-      removeToken();
+      // Tear down the socket and call the logout registered by AuthContext
+      // so the full auth state cleanup runs in one place.
+      console.warn("[Socket] Token refresh failed. Logging out.");
       disconnectSocket();
-      window.location.href = "/login";
+      // Trigger the AuthContext logout via the window bridge set by SocketContext.
+      if (typeof window.__authLogout === "function") {
+        window.__authLogout();
+      } else {
+        // Fallback: hard redirect if the bridge isn't wired yet.
+        window.location.href = "/login";
+      }
     } finally {
       isRefreshing = false;
     }

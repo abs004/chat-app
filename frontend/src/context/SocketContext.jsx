@@ -16,26 +16,43 @@ import {
 const SocketContext = createContext(null);
 
 export const SocketProvider = ({ children }) => {
-  const { token, logout } = useAuth();
+  const { token, authReady, logout } = useAuth();
   const navigate = useNavigate();
   // Use a ref so socket consumers always get the current instance
   const socketRef = useRef(null);
 
-// Initialize socket synchronously so children's effects
-// see socketRef.current already set on first mount/reload
-if (token && !socketRef.current) {
-  socketRef.current = connectSocket(token);
-  updateSocketToken(token);
-}
+  // Connect / disconnect the socket in response to auth state changes.
+  // Gated on authReady so we never connect with an expired token that
+  // AuthContext hasn't had a chance to refresh yet.
+  useEffect(() => {
+    if (!authReady) return; // wait for startup validation to finish
 
- useEffect(() => {
-  if (!token) {
-    disconnectSocket();
-    socketRef.current = null;
-  } else {
-    updateSocketToken(token);
-  }
-}, [token]);
+    if (!token) {
+      // User logged out or refresh failed — tear down any existing socket.
+      disconnectSocket();
+      socketRef.current = null;
+      return;
+    }
+
+    // authReady=true and token is valid — connect (or reuse) the socket.
+    if (!socketRef.current) {
+      socketRef.current = connectSocket(token);
+    } else {
+      // Socket already exists (e.g. token was silently refreshed) — just
+      // update the auth token so the next reconnect handshake uses it.
+      updateSocketToken(token);
+    }
+  }, [authReady, token]);
+
+  // Expose logout on window so socketService can trigger auth cleanup
+  // without creating a circular import (socketService → AuthContext).
+  useEffect(() => {
+    window.__authLogout = () => {
+      logout();
+      navigate("/login", { replace: true });
+    };
+    return () => { window.__authLogout = null; };
+  }, [logout, navigate]);
 
   // Listen for the server-initiated 'banned' event.
   // When received, run full auth cleanup and redirect to login.

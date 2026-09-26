@@ -3,13 +3,15 @@ import { useAuth } from "../../context/AuthContext.jsx";
 
 /**
  * Wraps routes that require authentication.
- * Renders the child if a token exists; redirects to /login otherwise.
- * This eliminates the useEffect-based redirect pattern in page components
- * which caused a visible flash before redirecting.
+ * Returns null (blank screen) while auth initialization is in progress.
+ * Once ready: renders the child if a valid token exists, redirects to /login otherwise.
  */
 const ProtectedRoute = ({ children, requireTerms = true }) => {
-  const { token } = useAuth();
-  
+  const { token, authReady } = useAuth();
+
+  // Prevent any render decision until the startup token check / silent refresh finishes.
+  if (!authReady) return null;
+
   if (!token) return <Navigate to="/login" replace />;
 
   if (requireTerms) {
