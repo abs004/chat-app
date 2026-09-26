@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext.jsx";
 import {
   connectSocket,
@@ -15,7 +16,8 @@ import {
 const SocketContext = createContext(null);
 
 export const SocketProvider = ({ children }) => {
-  const { token } = useAuth();
+  const { token, logout } = useAuth();
+  const navigate = useNavigate();
   // Use a ref so socket consumers always get the current instance
   const socketRef = useRef(null);
 
@@ -34,6 +36,22 @@ if (token && !socketRef.current) {
     updateSocketToken(token);
   }
 }, [token]);
+
+  // Listen for the server-initiated 'banned' event.
+  // When received, run full auth cleanup and redirect to login.
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket) return;
+
+    const onBanned = () => {
+      logout();
+      navigate("/login", { replace: true });
+    };
+
+    socket.on("banned", onBanned);
+    return () => socket.off("banned", onBanned);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socketRef.current]);
 
   return (
     <SocketContext.Provider value={socketRef}>

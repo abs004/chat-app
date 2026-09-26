@@ -9,6 +9,7 @@ import { sendEmail } from "../services/emailService.js";
 import User from "../models/User.js";
 import { markConversationReported } from "../utils/messageCleanup.js";
 import Feedback from "../models/Feedback.js";
+import { checkBanStatus } from "../utils/banCheck.js";
 
 const ALLOWED_DOMAIN = "@gecskp.ac.in";
 
@@ -114,6 +115,14 @@ export const handleRefresh = async (req, res, next) => {
       return res
         .status(401)
         .json({ success: false, message: "Malformed refresh token" });
+    }
+
+    // Block banned users from silently re-authenticating via refresh token
+    const { banned, message: banMessage } = await checkBanStatus(decoded.userId);
+    if (banned) {
+      return res
+        .status(403)
+        .json({ success: false, message: banMessage });
     }
 
     const { signToken } = await import("../utils/token.js");

@@ -1,6 +1,8 @@
 import { Server } from "socket.io";
 import env from "../config/env.js";
 import { verifyToken } from "../utils/token.js";
+import { registerIo } from "./socketRegistry.js";
+import { checkBanStatus } from "../utils/banCheck.js";
 import registerMatchHandlers from "./matchHandler.js";
 import registerMessageHandlers from "./messageHandler.js";
 
@@ -20,20 +22,32 @@ const initSocket = (httpServer) => {
     },
   });
 
-  // Socket authentication middleware — mirrors the HTTP auth middleware
-  io.use((socket, next) => {
+  // Make io accessible to controllers/services without circular imports
+  registerIo(io);
+
+  // Socket authentication middleware — verify JWT then check live ban status
+  io.use(async (socket, next) => {
     const token = socket.handshake.auth?.token;
     if (!token) {
       return next(new Error("Authentication error: no token provided"));
     }
 
+    let decoded;
     try {
-      const decoded = verifyToken(token);
-      socket.userId = decoded.userId;
-      next();
+      decoded = verifyToken(token);
     } catch {
-      next(new Error("Authentication error: invalid token"));
+      return next(new Error("Authentication error: invalid token"));
     }
+
+    try {
+      const { banned, message } = await checkBanStatus(decoded.userId);
+      if (banned) return next(new Error(`Banned: ${message}`));
+    } catch {
+      // DB unreachable — fail open, do not block socket
+    }
+
+    socket.userId = decoded.userId;
+    next();
   });
 
   io.on("connection", (socket) => {

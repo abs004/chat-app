@@ -5,6 +5,7 @@ import Message from "../models/Message.js";
 import Feedback from "../models/Feedback.js";
 import { scheduleMessageDeletion } from "../utils/messageCleanup.js";
 import { decryptMessage } from "../utils/crypto.js";
+import { getIo } from "../sockets/socketRegistry.js";
 
 // ── GET /admin/stats ──────────────────────────────────────────────────────────
 
@@ -201,6 +202,27 @@ export const handleBanUser = async (req, res, next) => {
       },
       { returnDocument: 'after', select: "email createdAt isVerified isBanned banExpiresAt isAdmin banHistory" }
     );
+
+    // Immediately kick all active sockets belonging to the banned user.
+    // We do this AFTER the DB write so the ban check in socket middleware
+    // blocks any instant reconnect attempt.
+    try {
+      const io = getIo();
+      const sockets = await io.fetchSockets();
+      for (const s of sockets) {
+        if (s.userId === userId) {
+          s.emit("banned", {
+            message: updated.banExpiresAt === null
+              ? "Your account has been permanently suspended."
+              : `Your account has been temporarily suspended until ${updated.banExpiresAt.toLocaleString("en-GB")}.`,
+          });
+          s.disconnect(true);
+        }
+      }
+    } catch (kickErr) {
+      // Non-fatal — ban is already saved; socket kick is best-effort
+      console.error("[Ban] Failed to kick sockets:", kickErr.message);
+    }
 
     return res.json(updated);
   } catch (err) {
