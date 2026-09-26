@@ -15,6 +15,15 @@ import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import AvatarSetup from "./pages/AvatarSetup.jsx";
 
+function RootRedirect() {
+  const { token } = useAuth();
+  const termsAccepted = localStorage.getItem("termsAccepted") === "true";
+
+  if (!token) return <Navigate to="/login" replace />;
+  if (!termsAccepted) return <Navigate to="/terms" replace />;
+  return <Navigate to="/chat-landing" replace />;
+}
+
 const RootLayout = () => (
   <AuthProvider>
     <SocketProvider>
@@ -36,8 +45,7 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route element={<RootLayout />}>
       {/* Redirect root to login */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
-
+      <Route path="/" element={<RootRedirect />} />
       {/* Public routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
